@@ -5,7 +5,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';  // ← ADICIONAR
+import Dashboard from './pages/Dashboard';
+import Notificacoes from './pages/Notificacoes';  // ← ADICIONAR
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -32,6 +33,14 @@ function App() {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notificacoes"  // ← ADICIONAR
+        element={
+          <ProtectedRoute>
+            <Notificacoes />
           </ProtectedRoute>
         }
       />
