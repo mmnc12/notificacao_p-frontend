@@ -12,9 +12,8 @@ export interface Localidade {
 }
 
 export const localidadesApi = {
-  // Listar todas
   async listar(): Promise<Localidade[]> {
     const response = await api.get('/localidades');
     return response.data;
-  }
+  },
 };

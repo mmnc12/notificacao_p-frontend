@@ -3,6 +3,7 @@
 // ============================================
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';  // ← ADICIONAR
 import { Layout } from '../../components/Layout';
 import { TabelaNotificacoes } from '../../components/TabelaNotificacoes';
 import { FiltrosNotificacoes } from '../../components/FiltrosNotificacoes';
@@ -10,10 +11,10 @@ import { notificacoesApi } from '../../api/notificacoes';
 import type { Notificacao, NotificacaoFiltros } from '../../api/notificacoes';
 
 const Notificacoes = () => {
+  const navigate = useNavigate();  // ← ADICIONAR
   const [dados, setDados] = useState<Notificacao[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Função que pode ser chamada tanto pelo useEffect quanto pelos filtros
   const carregarNotificacoes = async (filtros?: NotificacaoFiltros) => {
     setLoading(true);
     try {
@@ -26,7 +27,6 @@ const Notificacoes = () => {
     }
   };
 
-  // ✅ useEffect com função assíncrona interna (padrão recomendado)
   useEffect(() => {
     const fetchData = async () => {
       await carregarNotificacoes();
@@ -54,7 +54,10 @@ const Notificacoes = () => {
               Gerencie todas as notificações de arboviroses
             </p>
           </div>
-          <button className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg shadow-md shadow-emerald-500/30 transition-all">
+          <button
+            onClick={() => navigate('/notificacoes/novo')}  // ← AGORA FUNCIONA
+            className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg shadow-md shadow-emerald-500/30 transition-all"
+          >
             + Nova Notificação
           </button>
         </div>

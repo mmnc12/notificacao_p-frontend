@@ -46,4 +46,9 @@ export const notificacoesApi = {
     const response = await api.get(`/notificacoes?${params.toString()}`);
     return response.data;
   },
+
+  async criar(dados: any): Promise<Notificacao> {
+    const response = await api.post('/notificacoes', dados);
+    return response.data;
+  },
 };

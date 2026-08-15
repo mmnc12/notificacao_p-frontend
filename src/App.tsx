@@ -6,7 +6,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import Notificacoes from './pages/Notificacoes';  // ← ADICIONAR
+import Notificacoes from './pages/Notificacoes';
+import NovoNotificacao from './pages/Notificacoes/Novo';  // ← ADICIONAR
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -37,10 +38,18 @@ function App() {
         }
       />
       <Route
-        path="/notificacoes"  // ← ADICIONAR
+        path="/notificacoes"
         element={
           <ProtectedRoute>
             <Notificacoes />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notificacoes/novo"  // ← ADICIONAR
+        element={
+          <ProtectedRoute>
+            <NovoNotificacao />
           </ProtectedRoute>
         }
       />
