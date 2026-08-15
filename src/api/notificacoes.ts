@@ -34,7 +34,6 @@ export interface NotificacaoFiltros {
 }
 
 export const notificacoesApi = {
-  // Listar notificações com filtros
   async listar(filtros?: NotificacaoFiltros): Promise<Notificacao[]> {
     const params = new URLSearchParams();
     if (filtros) {

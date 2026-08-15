@@ -5,29 +5,42 @@
 import { useState, useEffect } from 'react';
 import { Layout } from '../../components/Layout';
 import { TabelaNotificacoes } from '../../components/TabelaNotificacoes';
+import { FiltrosNotificacoes } from '../../components/FiltrosNotificacoes';
 import { notificacoesApi } from '../../api/notificacoes';
-import type { Notificacao } from '../../api/notificacoes';
+import type { Notificacao, NotificacaoFiltros } from '../../api/notificacoes';
 
 const Notificacoes = () => {
   const [dados, setDados] = useState<Notificacao[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // ✅ Função assíncrona DENTRO do useEffect
-    const carregarNotificacoes = async () => {
-      setLoading(true);
-      try {
-        const data = await notificacoesApi.listar();
-        setDados(data);
-      } catch (error) {
-        console.error('Erro ao carregar notificações:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Função que pode ser chamada tanto pelo useEffect quanto pelos filtros
+  const carregarNotificacoes = async (filtros?: NotificacaoFiltros) => {
+    setLoading(true);
+    try {
+      const data = await notificacoesApi.listar(filtros);
+      setDados(data);
+    } catch (error) {
+      console.error('Erro ao carregar notificações:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // ✅ useEffect com função assíncrona interna (padrão recomendado)
+  useEffect(() => {
+    const fetchData = async () => {
+      await carregarNotificacoes();
+    };
+    fetchData();
+  }, []);
+
+  const handleFiltrar = (filtros: NotificacaoFiltros) => {
+    carregarNotificacoes(filtros);
+  };
+
+  const handleLimpar = () => {
     carregarNotificacoes();
-  }, []); // Array vazio = executa apenas na montagem
+  };
 
   return (
     <Layout>
@@ -45,6 +58,8 @@ const Notificacoes = () => {
             + Nova Notificação
           </button>
         </div>
+
+        <FiltrosNotificacoes onFiltrar={handleFiltrar} onLimpar={handleLimpar} />
 
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-slate-200 dark:border-slate-700">
           <TabelaNotificacoes dados={dados} loading={loading} />
