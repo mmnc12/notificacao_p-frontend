@@ -2,15 +2,18 @@
 // src/App.tsx
 // ============================================
 
-import { Routes, Route, Navigate } from 'react-router-dom';  // ← SEM BrowserRouter
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks';
 import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';  // ← ADICIONAR
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated, isLoading } = useAuth();
   
   if (isLoading) {
-    return <div>Carregando...</div>;
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="text-slate-500">Carregando...</div>
+    </div>;
   }
   
   if (!isAuthenticated) {
@@ -28,7 +31,7 @@ function App() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <div>Dashboard (em breve)</div>
+            <Dashboard />
           </ProtectedRoute>
         }
       />
