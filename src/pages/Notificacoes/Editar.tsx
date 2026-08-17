@@ -8,7 +8,11 @@ import { Layout } from '../../components/Layout';
 import { notificacoesApi, type NotificacaoInput } from '../../api/notificacoes';
 import { localidadesApi, type Localidade } from '../../api/localidades';
 
-const EditarNotificacao = () => {
+interface EditarNotificacaoProps {
+  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
+}
+
+const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -118,7 +122,6 @@ const EditarNotificacao = () => {
       return;
     }
 
-    // ✅ VALIDAÇÕES DE DATAS FUTURAS
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 
@@ -166,9 +169,11 @@ const EditarNotificacao = () => {
       };
 
       await notificacoesApi.atualizar(parseInt(id!), dadosEnviar);
+      showToast('✅ Notificação atualizada com sucesso!', 'success');
       navigate('/notificacoes');
     } catch (error) {
       console.error('Erro ao atualizar notificação:', error);
+      showToast('❌ Erro ao salvar notificação. Tente novamente.', 'error');
       setErro('Erro ao salvar notificação. Tente novamente.');
     } finally {
       setSalvando(false);

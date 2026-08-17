@@ -4,6 +4,8 @@
 
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks';
+import { useToast } from './hooks/useToast';
+import { Toast } from './components/Toast';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Notificacoes from './pages/Notificacoes';
@@ -12,58 +14,70 @@ import EditarNotificacao from './pages/Notificacoes/Editar';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated, isLoading } = useAuth();
-
+  
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">
       <div className="text-slate-500">Carregando...</div>
     </div>;
   }
-
+  
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
-
+  
   return children;
 };
 
 function App() {
+  const { toast, showToast, hideToast } = useToast();
+
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/notificacoes"
-        element={
-          <ProtectedRoute>
-            <Notificacoes />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/notificacoes/novo"  // ← ADICIONAR
-        element={
-          <ProtectedRoute>
-            <NovoNotificacao />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="*" element={<Navigate to="/login" />} />
-      <Route
-        path="/notificacoes/:id/editar"
-        element={
-          <ProtectedRoute>
-            <EditarNotificacao />
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
+    <>
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
+      
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notificacoes"
+          element={
+            <ProtectedRoute>
+              <Notificacoes />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notificacoes/novo"
+          element={
+            <ProtectedRoute>
+              <NovoNotificacao showToast={showToast} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notificacoes/:id/editar"
+          element={
+            <ProtectedRoute>
+              <EditarNotificacao showToast={showToast} />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/login" />} />
+      </Routes>
+    </>
   );
 }
 

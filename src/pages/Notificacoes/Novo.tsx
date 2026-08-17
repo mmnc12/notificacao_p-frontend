@@ -8,14 +8,17 @@ import { Layout } from '../../components/Layout';
 import { notificacoesApi, type NotificacaoInput } from '../../api/notificacoes';
 import { localidadesApi, type Localidade } from '../../api/localidades';
 
-const NovoNotificacao = () => {
+interface NovoNotificacaoProps {
+  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
+}
+
+const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [localidades, setLocalidades] = useState<Localidade[]>([]);
   const [loadingLocalidades, setLoadingLocalidades] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
-  // Estado do formulário
   const [form, setForm] = useState({
     nome_paciente: '',
     nome_mae: '',
@@ -30,7 +33,6 @@ const NovoNotificacao = () => {
     observacoes: '',
   });
 
-  // Carregar localidades
   useEffect(() => {
     const carregarLocalidades = async () => {
       try {
@@ -60,7 +62,6 @@ const NovoNotificacao = () => {
     e.preventDefault();
     setErro(null);
 
-    // Validações
     if (!form.nome_paciente) {
       setErro('Nome do paciente é obrigatório.');
       return;
@@ -82,7 +83,6 @@ const NovoNotificacao = () => {
       return;
     }
 
-    // ✅ VALIDAÇÕES DE DATAS FUTURAS
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 
@@ -101,13 +101,11 @@ const NovoNotificacao = () => {
       return;
     }
 
-    // Validar: data da notificação não pode ser anterior aos primeiros sintomas
     if (form.dt_notificacao < form.dt_primeiros_sintomas) {
       setErro('A data da notificação não pode ser anterior aos primeiros sintomas.');
       return;
     }
 
-    // Validar: pelo menos uma suspeita
     if (!form.suspeita_dengue && !form.suspeita_zika && !form.suspeita_chikungunya) {
       setErro('Selecione pelo menos uma suspeita (Dengue, Zika ou Chikungunya).');
       return;
@@ -132,9 +130,11 @@ const NovoNotificacao = () => {
       };
 
       await notificacoesApi.criar(dadosEnviar);
+      showToast('✅ Notificação criada com sucesso!', 'success');
       navigate('/notificacoes');
     } catch (error) {
       console.error('Erro ao criar notificação:', error);
+      showToast('❌ Erro ao salvar notificação. Tente novamente.', 'error');
       setErro('Erro ao salvar notificação. Tente novamente.');
     } finally {
       setLoading(false);
