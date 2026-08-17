@@ -2,34 +2,84 @@
 // src/pages/Dashboard/index.tsx
 // ============================================
 
+import { useState, useEffect } from 'react';
 import { Layout } from '../../components/Layout';
 import { CardEstatistica } from '../../components/CardEstatistica';
+import { GraficoBarras } from '../../components/GraficoBarras';
+import { GraficoPizza } from '../../components/GraficoPizza';
+import { GraficoLinhas } from '../../components/GraficoLinhas';
+import { dashboardService } from '../../services/dashboardService';
+import type { DashboardEstatisticas } from '../../services/dashboardService';
 
 const Dashboard = () => {
-  const estatisticas = {
-    total: 150,
-    ativos: 80,
-    inativos: 70,
-    positivos: 45,
-  };
+  const [estatisticas, setEstatisticas] = useState<DashboardEstatisticas | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const carregarDados = async () => {
+      try {
+        const dados = await dashboardService.buscarEstatisticas();
+        setEstatisticas(dados);
+      } catch (error) {
+        console.error('Erro ao carregar estatísticas:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    carregarDados();
+  }, []);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-slate-500 dark:text-slate-400">Carregando dados...</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!estatisticas) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-red-500">Erro ao carregar dados.</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Cores para os gráficos
+  const coresLocalidade = ['#1a3a6b', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#4f46e5', '#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe'];
+
+  // Preparar dados para os gráficos
+  const dadosLocalidade = estatisticas.porLocalidade.map((item, index) => ({
+    label: item.localidade,
+    valor: item.total,
+    cor: coresLocalidade[index % coresLocalidade.length],
+  }));
+
+  const dadosStatus = [
+    { label: 'Ativos', valor: estatisticas.ativos, cor: '#16a34a' },
+    { label: 'Inativos', valor: estatisticas.inativos, cor: '#ca8a04' },
+  ];
 
   return (
     <Layout>
       <div className="max-w-7xl mx-auto">
-        {/* Cabeçalho da página */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
-            Dashboard
+            📊 Dashboard
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Visão geral do sistema
+            Visão geral do sistema de notificações
           </p>
         </div>
 
         {/* Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <CardEstatistica
-            titulo="Total"
+            titulo="Total de Notificações"
             valor={estatisticas.total}
             cor="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
             icone={
@@ -70,14 +120,38 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Área para tabela */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-slate-200 dark:border-slate-700">
-          <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">
-            Últimas Notificações
-          </h2>
-          <p className="text-slate-500 dark:text-slate-400 text-center py-8">
-            Em breve: listagem de notificações
-          </p>
+        {/* Gráficos */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Gráfico de Barras - Localidades */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-slate-200 dark:border-slate-700">
+            <div className="h-64">
+              <GraficoBarras
+                dados={dadosLocalidade}
+                titulo="Notificações por Localidade"
+                labelY="Quantidade"
+              />
+            </div>
+          </div>
+
+          {/* Gráfico de Pizza - Status */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-slate-200 dark:border-slate-700">
+            <div className="h-64">
+              <GraficoPizza
+                dados={dadosStatus}
+                titulo="Distribuição por Status"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Gráfico de Linhas - Evolução Mensal */}
+        <div className="mt-6 bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-slate-200 dark:border-slate-700">
+          <div className="h-64">
+            <GraficoLinhas
+              dados={estatisticas.porMes}
+              titulo="Evolução Mensal de Notificações"
+            />
+          </div>
         </div>
       </div>
     </Layout>
