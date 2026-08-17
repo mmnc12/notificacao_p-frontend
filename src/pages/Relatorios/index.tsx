@@ -7,6 +7,7 @@ import { Layout } from '../../components/Layout';
 import { notificacoesApi } from '../../api/notificacoes';
 import { localidadesApi, type Localidade } from '../../api/localidades';
 import type { Notificacao, NotificacaoFiltros } from '../../api/notificacoes';
+import { exportacaoService } from '../../services/exportacaoService';  // ← ADICIONAR
 
 const Relatorios = () => {
   const [dados, setDados] = useState<Notificacao[]>([]);
@@ -35,18 +36,14 @@ const Relatorios = () => {
     carregarLocalidades();
   }, []);
 
-  // ✅ BUSCAR DADOS (aceita filtros personalizados)
   const buscarDados = async (filtrosPersonalizados?: NotificacaoFiltros) => {
     setLoading(true);
     try {
-      // Se recebeu filtros personalizados, usa eles. Senão, usa os filtros do estado.
       const params: NotificacaoFiltros = {};
 
       if (filtrosPersonalizados) {
-        // Usa os filtros personalizados (ex: limpar)
         Object.assign(params, filtrosPersonalizados);
       } else {
-        // Usa os filtros do estado
         if (filtros.nome) params.nome = filtros.nome;
         if (filtros.localidade_id) params.localidade_id = parseInt(filtros.localidade_id);
         if (filtros.status) params.status = filtros.status as 'ATIVO' | 'INATIVO';
@@ -69,12 +66,10 @@ const Relatorios = () => {
     buscarDados();
   }, []);
 
-  // ✅ FILTRAR
   const handleFiltrar = () => {
     buscarDados();
   };
 
-  // ✅ LIMPAR FILTROS
   const limparFiltros = () => {
     setFiltros({
       nome: '',
@@ -84,19 +79,24 @@ const Relatorios = () => {
       dataInicio: '',
       dataFim: '',
     });
-    // Recarregar sem filtros
     buscarDados({});
   };
 
-  const exportarExcel = () => {
-    // Implementar depois
-    alert('Exportar Excel - Em breve');
+  // ✅ EXPORTAR EXCEL
+  const exportarExcel = async () => {
+    try {
+      await exportacaoService.exportarExcel(dados);
+    } catch (error) {
+      console.error('Erro ao exportar Excel:', error);
+    }
   };
 
+  // Exportar PDF (em breve)
   const exportarPDF = () => {
     alert('Exportar PDF - Em breve');
   };
 
+  // Exportar CSV (em breve)
   const exportarCSV = () => {
     alert('Exportar CSV - Em breve');
   };
