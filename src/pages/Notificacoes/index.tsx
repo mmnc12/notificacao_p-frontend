@@ -3,23 +3,35 @@
 // ============================================
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';  // ← ADICIONAR
+import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/Layout';
 import { TabelaNotificacoes } from '../../components/TabelaNotificacoes';
 import { FiltrosNotificacoes } from '../../components/FiltrosNotificacoes';
+import { Paginacao } from '../../components/Paginacao';
 import { notificacoesApi } from '../../api/notificacoes';
 import type { Notificacao, NotificacaoFiltros } from '../../api/notificacoes';
 
 const Notificacoes = () => {
-  const navigate = useNavigate();  // ← ADICIONAR
+  const navigate = useNavigate();
   const [dados, setDados] = useState<Notificacao[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pagina, setPagina] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
+  const [totalRegistros, setTotalRegistros] = useState(0);
+  const [filtrosAplicados, setFiltrosAplicados] = useState<NotificacaoFiltros>({});
 
-  const carregarNotificacoes = async (filtros?: NotificacaoFiltros) => {
+  const carregarNotificacoes = async (filtros?: NotificacaoFiltros, paginaAtual: number = 1) => {
     setLoading(true);
     try {
-      const data = await notificacoesApi.listar(filtros);
-      setDados(data);
+      const response = await notificacoesApi.listar({
+        ...filtros,
+        page: paginaAtual,
+        limit: 10,
+      });
+      setDados(response.dados);
+      setTotalPaginas(response.paginacao.totalPaginas);
+      setTotalRegistros(response.paginacao.total);
+      setPagina(response.paginacao.pagina);
     } catch (error) {
       console.error('Erro ao carregar notificações:', error);
     } finally {
@@ -28,18 +40,21 @@ const Notificacoes = () => {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      await carregarNotificacoes();
-    };
-    fetchData();
+    carregarNotificacoes();
   }, []);
 
   const handleFiltrar = (filtros: NotificacaoFiltros) => {
-    carregarNotificacoes(filtros);
+    setFiltrosAplicados(filtros);
+    carregarNotificacoes(filtros, 1);
   };
 
   const handleLimpar = () => {
-    carregarNotificacoes();
+    setFiltrosAplicados({});
+    carregarNotificacoes({}, 1);
+  };
+
+  const handlePaginaChange = (novaPagina: number) => {
+    carregarNotificacoes(filtrosAplicados, novaPagina);
   };
 
   return (
@@ -51,11 +66,11 @@ const Notificacoes = () => {
               Notificações
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Gerencie todas as notificações de arboviroses
+              {totalRegistros > 0 ? `Total: ${totalRegistros} notificações` : 'Gerencie todas as notificações de arboviroses'}
             </p>
           </div>
           <button
-            onClick={() => navigate('/notificacoes/novo')}  // ← AGORA FUNCIONA
+            onClick={() => navigate('/notificacoes/novo')}
             className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg shadow-md shadow-emerald-500/30 transition-all"
           >
             + Nova Notificação
@@ -66,6 +81,11 @@ const Notificacoes = () => {
 
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-slate-200 dark:border-slate-700">
           <TabelaNotificacoes dados={dados} loading={loading} />
+          <Paginacao
+            paginaAtual={pagina}
+            totalPaginas={totalPaginas}
+            onPaginaChange={handlePaginaChange}
+          />
         </div>
       </div>
     </Layout>

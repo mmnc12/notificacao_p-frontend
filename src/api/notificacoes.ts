@@ -36,6 +36,20 @@ export interface NotificacaoFiltros {
   dataInicio?: string;
   dataFim?: string;
   resultado?: 'POSITIVO' | 'NEGATIVO' | 'INCONCLUSIVO' | 'AGUARDANDO';
+  page?: number;
+  limit?: number;
+}
+
+export interface Paginacao {
+  total: number;
+  pagina: number;
+  limite: number;
+  totalPaginas: number;
+}
+
+export interface ListaNotificacoesResponse {
+  dados: Notificacao[];
+  paginacao: Paginacao;
 }
 
 export type Resultado = 'POSITIVO' | 'NEGATIVO' | 'INCONCLUSIVO' | 'AGUARDANDO';
@@ -56,7 +70,7 @@ export interface NotificacaoInput {
 }
 
 export const notificacoesApi = {
-  async listar(filtros?: NotificacaoFiltros): Promise<Notificacao[]> {
+  async listar(filtros?: NotificacaoFiltros): Promise<ListaNotificacoesResponse> {
     const params = new URLSearchParams();
     if (filtros) {
       Object.entries(filtros).forEach(([key, value]) => {
