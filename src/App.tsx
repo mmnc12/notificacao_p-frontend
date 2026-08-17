@@ -11,20 +11,21 @@ import Dashboard from './pages/Dashboard';
 import Notificacoes from './pages/Notificacoes';
 import NovoNotificacao from './pages/Notificacoes/Novo';
 import EditarNotificacao from './pages/Notificacoes/Editar';
+import Relatorios from './pages/Relatorios';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  
+
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">
       <div className="text-slate-500">Carregando...</div>
     </div>;
   }
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
-  
+
   return children;
 };
 
@@ -40,7 +41,7 @@ function App() {
           onClose={hideToast}
         />
       )}
-      
+
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route
@@ -72,6 +73,14 @@ function App() {
           element={
             <ProtectedRoute>
               <EditarNotificacao showToast={showToast} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/relatorios"
+          element={
+            <ProtectedRoute>
+              <Relatorios />
             </ProtectedRoute>
           }
         />
