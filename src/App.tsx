@@ -12,6 +12,7 @@ import Notificacoes from './pages/Notificacoes';
 import NovoNotificacao from './pages/Notificacoes/Novo';
 import EditarNotificacao from './pages/Notificacoes/Editar';
 import Relatorios from './pages/Relatorios';
+import Localidades from './pages/Localidades';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -81,6 +82,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Relatorios />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/localidades"
+          element={
+            <ProtectedRoute>
+              <Localidades />
             </ProtectedRoute>
           }
         />
