@@ -97,4 +97,8 @@ export const notificacoesApi = {
     const response = await api.put(`/notificacoes/${id}`, dados);
     return response.data;
   },
+
+  async deletar(id: number): Promise<void> {
+    await api.delete(`/notificacoes/${id}`);
+  },
 };
