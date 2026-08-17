@@ -2,14 +2,18 @@
 // src/components/TabelaNotificacoes.tsx
 // ============================================
 
+import { useNavigate } from 'react-router-dom';
 import type { Notificacao } from '../api/notificacoes';
 
 interface TabelaNotificacoesProps {
   dados: Notificacao[];
   loading: boolean;
+  onDelete?: (id: number) => void;
 }
 
-export const TabelaNotificacoes = ({ dados, loading }: TabelaNotificacoesProps) => {
+export const TabelaNotificacoes = ({ dados, loading, onDelete }: TabelaNotificacoesProps) => {
+  const navigate = useNavigate();
+
   if (loading) {
     return (
       <div className="text-center py-8 text-slate-500 dark:text-slate-400">
@@ -81,10 +85,16 @@ export const TabelaNotificacoes = ({ dados, loading }: TabelaNotificacoesProps) 
               </td>
               <td className="py-3 px-4">
                 <div className="flex gap-2">
-                  <button className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium">
+                  <button
+                    onClick={() => navigate(`/notificacoes/${notificacao.id}/editar`)}
+                    className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
+                  >
                     Editar
                   </button>
-                  <button className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium">
+                  <button
+                    onClick={() => onDelete?.(notificacao.id)}
+                    className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium"
+                  >
                     Deletar
                   </button>
                 </div>

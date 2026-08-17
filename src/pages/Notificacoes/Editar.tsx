@@ -1,21 +1,22 @@
 // ============================================
-// src/pages/Notificacoes/Novo.tsx
+// src/pages/Notificacoes/Editar.tsx
 // ============================================
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Layout } from '../../components/Layout';
 import { notificacoesApi, type NotificacaoInput } from '../../api/notificacoes';
 import { localidadesApi, type Localidade } from '../../api/localidades';
 
-const NovoNotificacao = () => {
+const EditarNotificacao = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [salvando, setSalvando] = useState(false);
   const [localidades, setLocalidades] = useState<Localidade[]>([]);
   const [loadingLocalidades, setLoadingLocalidades] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
-  // Estado do formulário
   const [form, setForm] = useState({
     nome_paciente: '',
     nome_mae: '',
@@ -30,7 +31,6 @@ const NovoNotificacao = () => {
     observacoes: '',
   });
 
-  // Carregar localidades
   useEffect(() => {
     const carregarLocalidades = async () => {
       try {
@@ -44,6 +44,43 @@ const NovoNotificacao = () => {
     };
     carregarLocalidades();
   }, []);
+
+  useEffect(() => {
+    const carregarNotificacao = async () => {
+      if (!id) return;
+      try {
+        const data = await notificacoesApi.buscarPorId(parseInt(id));
+
+        const formatarDataInput = (dataStr: string | null | undefined): string => {
+          if (!dataStr) return '';
+          if (dataStr === '0000-00-00') return '';
+          const d = new Date(dataStr);
+          if (isNaN(d.getTime())) return '';
+          return d.toISOString().split('T')[0];
+        };
+
+        setForm({
+          nome_paciente: data.nome_paciente,
+          nome_mae: data.nome_mae,
+          localidade_id: String(data.localidade_id),
+          dt_primeiros_sintomas: formatarDataInput(data.dt_primeiros_sintomas),
+          dt_notificacao: formatarDataInput(data.dt_notificacao),
+          dt_recebimento: formatarDataInput(data.dt_recebimento),
+          endereco: data.endereco || '',
+          suspeita_dengue: data.suspeita_dengue,
+          suspeita_zika: data.suspeita_zika,
+          suspeita_chikungunya: data.suspeita_chikungunya,
+          observacoes: data.observacoes || '',
+        });
+      } catch (error) {
+        console.error('Erro ao carregar notificação:', error);
+        setErro('Notificação não encontrada.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    carregarNotificacao();
+  }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -60,7 +97,6 @@ const NovoNotificacao = () => {
     e.preventDefault();
     setErro(null);
 
-    // Validações
     if (!form.nome_paciente) {
       setErro('Nome do paciente é obrigatório.');
       return;
@@ -101,19 +137,17 @@ const NovoNotificacao = () => {
       return;
     }
 
-    // Validar: data da notificação não pode ser anterior aos primeiros sintomas
+    if (!form.suspeita_dengue && !form.suspeita_zika && !form.suspeita_chikungunya) {
+      setErro('Selecione pelo menos uma suspeita.');
+      return;
+    }
+
     if (form.dt_notificacao < form.dt_primeiros_sintomas) {
       setErro('A data da notificação não pode ser anterior aos primeiros sintomas.');
       return;
     }
 
-    // Validar: pelo menos uma suspeita
-    if (!form.suspeita_dengue && !form.suspeita_zika && !form.suspeita_chikungunya) {
-      setErro('Selecione pelo menos uma suspeita (Dengue, Zika ou Chikungunya).');
-      return;
-    }
-
-    setLoading(true);
+    setSalvando(true);
 
     try {
       const dadosEnviar: NotificacaoInput = {
@@ -131,15 +165,25 @@ const NovoNotificacao = () => {
         resultado: 'AGUARDANDO',
       };
 
-      await notificacoesApi.criar(dadosEnviar);
+      await notificacoesApi.atualizar(parseInt(id!), dadosEnviar);
       navigate('/notificacoes');
     } catch (error) {
-      console.error('Erro ao criar notificação:', error);
+      console.error('Erro ao atualizar notificação:', error);
       setErro('Erro ao salvar notificação. Tente novamente.');
     } finally {
-      setLoading(false);
+      setSalvando(false);
     }
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+          Carregando notificação...
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -147,10 +191,10 @@ const NovoNotificacao = () => {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
-              Nova Notificação
+              Editar Notificação
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Preencha os dados da nova notificação
+              Altere os dados da notificação
             </p>
           </div>
           <button
@@ -179,7 +223,6 @@ const NovoNotificacao = () => {
                 value={form.nome_paciente}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                placeholder="Nome completo"
                 required
               />
             </div>
@@ -194,7 +237,6 @@ const NovoNotificacao = () => {
                 value={form.nome_mae}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                placeholder="Nome da mãe"
                 required
               />
             </div>
@@ -230,7 +272,6 @@ const NovoNotificacao = () => {
                 value={form.endereco}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                placeholder="Rua, número, bairro"
               />
             </div>
 
@@ -324,7 +365,6 @@ const NovoNotificacao = () => {
               onChange={handleChange}
               rows={3}
               className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-              placeholder="Informações adicionais..."
             />
           </div>
 
@@ -338,10 +378,10 @@ const NovoNotificacao = () => {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={salvando}
               className="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg shadow-md shadow-emerald-500/30 transition-all disabled:bg-emerald-300"
             >
-              {loading ? 'Salvando...' : 'Salvar'}
+              {salvando ? 'Salvando...' : 'Salvar'}
             </button>
           </div>
         </form>
@@ -350,4 +390,4 @@ const NovoNotificacao = () => {
   );
 };
 
-export default NovoNotificacao;
+export default EditarNotificacao;
