@@ -6,7 +6,11 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../hooks';
 import logo from '../assets/logo.png';
 
-export const Sidebar = () => {
+interface SidebarProps {
+  onClose?: () => void;  // ← ADICIONAR
+}
+
+export const Sidebar = ({ onClose }: SidebarProps) => {
   const { usuario } = useAuth();
 
   const menuItems = [
@@ -17,19 +21,22 @@ export const Sidebar = () => {
     { path: '/perfil', label: 'Perfil', icon: '👤' },
   ];
 
-  // ✅ APENAS ADMIN VÊ O MENU DE USUÁRIOS
   if (usuario?.tipo === 'ADMIN') {
     menuItems.push({ path: '/usuarios', label: 'Usuários', icon: '👥' });
   }
 
+  // ✅ FECHAR SIDEBAR AO CLICAR EM UM LINK (mobile)
+  const handleLinkClick = () => {
+    if (onClose) onClose();
+  };
+
   return (
-    <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-shrink-0">
+    <aside className="w-64 h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-shrink-0">
       <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-        {/* ✅ LOGO EM VEZ DO MOSQUITO */}
         <div className="flex items-center gap-3">
-          <img
-            src={logo}
-            alt="Logo"
+          <img 
+            src={logo} 
+            alt="Logo" 
             className="w-10 h-10 object-contain"
           />
           <div>
@@ -48,10 +55,12 @@ export const Sidebar = () => {
           <NavLink
             key={item.path}
             to={item.path}
+            onClick={handleLinkClick}  // ← FECHA AO CLICAR
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
-                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
+              `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive
+                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
+                  : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
               }`
             }
           >
