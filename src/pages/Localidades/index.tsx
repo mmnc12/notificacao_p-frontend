@@ -4,8 +4,9 @@
 
 import { useState, useEffect } from 'react';
 import { Layout } from '../../components/Layout';
-import { localidadesApi, type Localidade } from '../../api/localidades';
+import { localidadesApi, type Localidade, type LocalidadeInput } from '../../api/localidades';
 import { ModalConfirmacao } from '../../components/ModalConfirmacao';
+import { ModalLocalidade } from '../../components/ModalLocalidade';
 
 interface LocalidadesProps {
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
@@ -15,9 +16,14 @@ const Localidades = ({ showToast }: LocalidadesProps) => {
   const [dados, setDados] = useState<Localidade[]>([]);
   const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState('');
-  const [modalAberto, setModalAberto] = useState(false);
+  const [modalDeleteAberto, setModalDeleteAberto] = useState(false);
   const [deletando, setDeletando] = useState(false);
   const [idParaDeletar, setIdParaDeletar] = useState<number | null>(null);
+
+  // ✅ ESTADOS DO MODAL DE CRIAÇÃO/EDIÇÃO
+  const [modalFormAberto, setModalFormAberto] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [localidadeEditando, setLocalidadeEditando] = useState<Localidade | null>(null);
 
   const carregarLocalidades = async () => {
     setLoading(true);
@@ -35,13 +41,66 @@ const Localidades = ({ showToast }: LocalidadesProps) => {
     carregarLocalidades();
   }, []);
 
+  // ✅ FUNÇÃO PARA CRIAR LOCALIDADE
+  const handleCriarLocalidade = async (dados: LocalidadeInput) => {
+    setSalvando(true);
+    try {
+      await localidadesApi.criar(dados);
+      setModalFormAberto(false);
+      carregarLocalidades();
+      showToast('✅ Localidade criada com sucesso!', 'success');
+    } catch (error: any) {
+      const mensagem = error.response?.data?.error || 'Erro ao criar localidade.';
+      showToast(`❌ ${mensagem}`, 'error');
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  // ✅ FUNÇÃO PARA ATUALIZAR LOCALIDADE
+  const handleAtualizarLocalidade = async (dados: LocalidadeInput) => {
+    if (!localidadeEditando) return;
+
+    setSalvando(true);
+    try {
+      await localidadesApi.atualizar(localidadeEditando.id, dados);
+      setModalFormAberto(false);
+      setLocalidadeEditando(null);
+      carregarLocalidades();
+      showToast('✅ Localidade atualizada com sucesso!', 'success');
+    } catch (error: any) {
+      const mensagem = error.response?.data?.error || 'Erro ao atualizar localidade.';
+      showToast(`❌ ${mensagem}`, 'error');
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  // ✅ ABRIR MODAL PARA EDIÇÃO
+  const handleEditarClick = (localidade: Localidade) => {
+    setLocalidadeEditando(localidade);
+    setModalFormAberto(true);
+  };
+
+  // ✅ ABRIR MODAL PARA CRIAÇÃO
+  const handleCriarClick = () => {
+    setLocalidadeEditando(null);
+    setModalFormAberto(true);
+  };
+
+  // ✅ FECHAR MODAL
+  const handleFecharModal = () => {
+    setModalFormAberto(false);
+    setLocalidadeEditando(null);
+  };
+
   const localidadesFiltradas = dados.filter((item) =>
     item.nome_localidade.toLowerCase().includes(busca.toLowerCase())
   );
 
   const handleDeleteClick = (id: number) => {
     setIdParaDeletar(id);
-    setModalAberto(true);
+    setModalDeleteAberto(true);
   };
 
   const handleConfirmDelete = async () => {
@@ -50,7 +109,7 @@ const Localidades = ({ showToast }: LocalidadesProps) => {
     setDeletando(true);
     try {
       await localidadesApi.deletar(idParaDeletar);
-      setModalAberto(false);
+      setModalDeleteAberto(false);
       setDeletando(false);
       setIdParaDeletar(null);
       carregarLocalidades();
@@ -59,12 +118,12 @@ const Localidades = ({ showToast }: LocalidadesProps) => {
       const mensagem = error.response?.data?.error || 'Erro ao excluir localidade.';
       showToast(`❌ ${mensagem}`, 'error');
       setDeletando(false);
-      setModalAberto(false);
+      setModalDeleteAberto(false);
     }
   };
 
   const handleCancelDelete = () => {
-    setModalAberto(false);
+    setModalDeleteAberto(false);
     setIdParaDeletar(null);
     setDeletando(false);
   };
@@ -89,7 +148,10 @@ const Localidades = ({ showToast }: LocalidadesProps) => {
               placeholder="Buscar localidade..."
               className="flex-1 sm:flex-none px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
             />
-            <button className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg shadow-md shadow-emerald-500/30 transition-all whitespace-nowrap">
+            <button
+              onClick={handleCriarClick}
+              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg shadow-md shadow-emerald-500/30 transition-all whitespace-nowrap"
+            >
               + Nova
             </button>
           </div>
@@ -132,7 +194,10 @@ const Localidades = ({ showToast }: LocalidadesProps) => {
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex gap-2">
-                          <button className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium">
+                          <button
+                            onClick={() => handleEditarClick(item)}
+                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
+                          >
                             Editar
                           </button>
                           <button
@@ -152,13 +217,24 @@ const Localidades = ({ showToast }: LocalidadesProps) => {
         </div>
       </div>
 
+      {/* MODAL DE CONFIRMAÇÃO PARA DELETAR */}
       <ModalConfirmacao
-        isOpen={modalAberto}
+        isOpen={modalDeleteAberto}
         titulo="Confirmar exclusão"
         mensagem="Tem certeza que deseja excluir esta localidade? Esta ação não pode ser desfeita."
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
         loading={deletando}
+      />
+
+      {/* MODAL DE CRIAÇÃO/EDIÇÃO */}
+      <ModalLocalidade
+        isOpen={modalFormAberto}
+        onClose={handleFecharModal}
+        onSave={localidadeEditando ? handleAtualizarLocalidade : handleCriarLocalidade}
+        localidade={localidadeEditando}
+        titulo={localidadeEditando ? 'Editar Localidade' : 'Nova Localidade'}
+        loading={salvando}
       />
     </Layout>
   );

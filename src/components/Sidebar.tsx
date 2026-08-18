@@ -9,6 +9,7 @@ const menuItems = [
   { path: '/notificacoes', label: 'Notificações', icon: '📋' },
   { path: '/localidades', label: 'Localidades', icon: '📍' },
   { path: '/relatorios', label: 'Relatórios', icon: '📄' },
+  { path: '/perfil', label: 'Perfil', icon: '👤' },
 ];
 
 export const Sidebar = () => {
