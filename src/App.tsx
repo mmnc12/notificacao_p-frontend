@@ -13,7 +13,8 @@ import NovoNotificacao from './pages/Notificacoes/Novo';
 import EditarNotificacao from './pages/Notificacoes/Editar';
 import Relatorios from './pages/Relatorios';
 import Localidades from './pages/Localidades';
-import Perfil from './pages/Perfil';  // ← ADICIONAR
+import Perfil from './pages/Perfil';
+import Usuarios from './pages/Usuarios';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -99,6 +100,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Perfil showToast={showToast} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/usuarios"
+          element={
+            <ProtectedRoute>
+              <Usuarios showToast={showToast} />
             </ProtectedRoute>
           }
         />
