@@ -4,6 +4,7 @@
 
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../hooks';
+import logo from '../assets/logo.png';
 
 export const Sidebar = () => {
   const { usuario } = useAuth();
@@ -24,12 +25,22 @@ export const Sidebar = () => {
   return (
     <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-shrink-0">
       <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-        <h1 className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
-          🦟 Arboviroses
-        </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-          Sistema de Notificação
-        </p>
+        {/* ✅ LOGO EM VEZ DO MOSQUITO */}
+        <div className="flex items-center gap-3">
+          <img
+            src={logo}
+            alt="Logo"
+            className="w-10 h-10 object-contain"
+          />
+          <div>
+            <h1 className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+              Arboviroses
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Sistema de Notificação
+            </p>
+          </div>
+        </div>
       </div>
 
       <nav className="p-3 space-y-1">
