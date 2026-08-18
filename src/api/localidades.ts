@@ -16,4 +16,8 @@ export const localidadesApi = {
     const response = await api.get('/localidades');
     return response.data;
   },
+
+  async deletar(id: number): Promise<void> {
+    await api.delete(`/localidades/${id}`);
+  },
 };

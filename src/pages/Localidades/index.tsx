@@ -5,19 +5,27 @@
 import { useState, useEffect } from 'react';
 import { Layout } from '../../components/Layout';
 import { localidadesApi, type Localidade } from '../../api/localidades';
+import { ModalConfirmacao } from '../../components/ModalConfirmacao';
 
-const Localidades = () => {
+interface LocalidadesProps {
+  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
+}
+
+const Localidades = ({ showToast }: LocalidadesProps) => {
   const [dados, setDados] = useState<Localidade[]>([]);
   const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState('');
+  const [modalAberto, setModalAberto] = useState(false);
+  const [deletando, setDeletando] = useState(false);
+  const [idParaDeletar, setIdParaDeletar] = useState<number | null>(null);
 
   const carregarLocalidades = async () => {
     setLoading(true);
     try {
       const data = await localidadesApi.listar();
       setDados(data);
-    } catch (error) {
-      console.error('Erro ao carregar localidades:', error);
+    } catch {
+      showToast('❌ Erro ao carregar localidades.', 'error');
     } finally {
       setLoading(false);
     }
@@ -27,10 +35,39 @@ const Localidades = () => {
     carregarLocalidades();
   }, []);
 
-  // Filtrar localidades
   const localidadesFiltradas = dados.filter((item) =>
     item.nome_localidade.toLowerCase().includes(busca.toLowerCase())
   );
+
+  const handleDeleteClick = (id: number) => {
+    setIdParaDeletar(id);
+    setModalAberto(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!idParaDeletar) return;
+
+    setDeletando(true);
+    try {
+      await localidadesApi.deletar(idParaDeletar);
+      setModalAberto(false);
+      setDeletando(false);
+      setIdParaDeletar(null);
+      carregarLocalidades();
+      showToast('✅ Localidade excluída com sucesso!', 'success');
+    } catch (error: any) {
+      const mensagem = error.response?.data?.error || 'Erro ao excluir localidade.';
+      showToast(`❌ ${mensagem}`, 'error');
+      setDeletando(false);
+      setModalAberto(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setModalAberto(false);
+    setIdParaDeletar(null);
+    setDeletando(false);
+  };
 
   return (
     <Layout>
@@ -58,7 +95,6 @@ const Localidades = () => {
           </div>
         </div>
 
-        {/* Tabela */}
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-slate-200 dark:border-slate-700">
           {loading ? (
             <div className="text-center py-8 text-slate-500 dark:text-slate-400">
@@ -99,7 +135,10 @@ const Localidades = () => {
                           <button className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium">
                             Editar
                           </button>
-                          <button className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium">
+                          <button
+                            onClick={() => handleDeleteClick(item.id)}
+                            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium"
+                          >
                             Deletar
                           </button>
                         </div>
@@ -112,6 +151,15 @@ const Localidades = () => {
           )}
         </div>
       </div>
+
+      <ModalConfirmacao
+        isOpen={modalAberto}
+        titulo="Confirmar exclusão"
+        mensagem="Tem certeza que deseja excluir esta localidade? Esta ação não pode ser desfeita."
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        loading={deletando}
+      />
     </Layout>
   );
 };

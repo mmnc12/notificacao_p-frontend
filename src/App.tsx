@@ -89,7 +89,7 @@ function App() {
           path="/localidades"
           element={
             <ProtectedRoute>
-              <Localidades />
+              <Localidades showToast={showToast} />
             </ProtectedRoute>
           }
         />
