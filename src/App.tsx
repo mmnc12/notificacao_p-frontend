@@ -59,7 +59,7 @@ function App() {
           path="/notificacoes"
           element={
             <ProtectedRoute>
-              <Notificacoes />
+              <Notificacoes showToast={showToast} />
             </ProtectedRoute>
           }
         />

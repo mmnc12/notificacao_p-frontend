@@ -2,7 +2,7 @@
 // src/components/Toast.tsx
 // ============================================
 
-import { useState, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface ToastProps {
   message: string;
@@ -11,14 +11,41 @@ interface ToastProps {
   onClose: () => void;
 }
 
-export const Toast = ({ message, type, duration = 3000, onClose }: ToastProps) => {
+export const Toast = ({ message, type, duration = 5000, onClose }: ToastProps) => {
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isClosedRef = useRef(false);
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose();
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    isClosedRef.current = false;
+
+    timerRef.current = setTimeout(() => {
+      if (!isClosedRef.current) {
+        isClosedRef.current = true;
+        onClose();
+      }
     }, duration);
 
-    return () => clearTimeout(timer);
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      isClosedRef.current = true;
+    };
   }, [duration, onClose]);
+
+  const handleClose = () => {
+    if (!isClosedRef.current) {
+      isClosedRef.current = true;
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      onClose();
+    }
+  };
 
   const colors = {
     success: 'bg-green-500',
@@ -50,7 +77,7 @@ export const Toast = ({ message, type, duration = 3000, onClose }: ToastProps) =
         <span className="flex-shrink-0">{icons[type]}</span>
         <span className="text-sm font-medium">{message}</span>
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="ml-auto flex-shrink-0 text-white/80 hover:text-white"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

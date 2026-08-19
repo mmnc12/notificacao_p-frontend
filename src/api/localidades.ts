@@ -35,6 +35,15 @@ export const localidadesApi = {
   },
 
   async deletar(id: number): Promise<void> {
-    await api.delete(`/localidades/${id}`);
+    console.log('📝 API - deletar - ID:', id);  // ← ADICIONAR
+    try {
+      const response = await api.delete(`/localidades/${id}`);
+      console.log('📝 API - deletar - response:', response);  // ← ADICIONAR
+      return response.data;
+    } catch (error: any) {
+      console.log('📝 API - deletar - ERRO:', error);  // ← ADICIONAR
+      console.log('📝 API - deletar - response:', error.response);  // ← ADICIONAR
+      throw error;
+    }
   },
 };

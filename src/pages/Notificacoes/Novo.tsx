@@ -5,12 +5,21 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/Layout';
-import { notificacoesApi, type NotificacaoInput } from '../../api/notificacoes';
+import { notificacoesApi, type NotificacaoInput, type Resultado } from '../../api/notificacoes';
 import { localidadesApi, type Localidade } from '../../api/localidades';
 
 interface NovoNotificacaoProps {
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
+
+// ✅ FUNÇÃO PARA GERAR LINK DO GOOGLE EARTH
+const gerarLinkGoogleEarth = (lat: string, lng: string): string => {
+  if (!lat || !lng) return '';
+  const latNum = parseFloat(lat);
+  const lngNum = parseFloat(lng);
+  if (isNaN(latNum) || isNaN(lngNum)) return '';
+  return `https://earth.google.com/web/@${latNum},${lngNum},0a,222.51700277d,35y,0h,45t,0r`;
+};
 
 const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
   const navigate = useNavigate();
@@ -27,6 +36,10 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
     dt_notificacao: '',
     dt_recebimento: '',
     endereco: '',
+    latitude: '',
+    longitude: '',
+    resultado: 'AGUARDANDO' as Resultado,
+    dt_resultado: '',
     suspeita_dengue: false,
     suspeita_zika: false,
     suspeita_chikungunya: false,
@@ -62,58 +75,44 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
     e.preventDefault();
     setErro(null);
 
+    // Validações
     if (!form.nome_paciente) {
-      setErro('Nome do paciente é obrigatório.');
+      showToast('❌ Nome do paciente é obrigatório.', 'error');
       return;
     }
     if (!form.nome_mae) {
-      setErro('Nome da mãe é obrigatório.');
+      showToast('❌ Nome da mãe é obrigatório.', 'error');
       return;
     }
     if (!form.localidade_id) {
-      setErro('Localidade é obrigatória.');
+      showToast('❌ Localidade é obrigatória.', 'error');
       return;
     }
     if (!form.dt_primeiros_sintomas) {
-      setErro('Data dos primeiros sintomas é obrigatória.');
+      showToast('❌ Data dos primeiros sintomas é obrigatória.', 'error');
       return;
     }
     if (!form.dt_notificacao) {
-      setErro('Data da notificação é obrigatória.');
-      return;
-    }
-
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    if (new Date(form.dt_primeiros_sintomas) > hoje) {
-      setErro('A data dos primeiros sintomas não pode ser futura.');
-      return;
-    }
-
-    if (new Date(form.dt_notificacao) > hoje) {
-      setErro('A data da notificação não pode ser futura.');
-      return;
-    }
-
-    if (form.dt_recebimento && new Date(form.dt_recebimento) > hoje) {
-      setErro('A data de recebimento não pode ser futura.');
+      showToast('❌ Data da notificação é obrigatória.', 'error');
       return;
     }
 
     if (form.dt_notificacao < form.dt_primeiros_sintomas) {
-      setErro('A data da notificação não pode ser anterior aos primeiros sintomas.');
+      showToast('❌ A data da notificação não pode ser anterior aos primeiros sintomas.', 'error');
       return;
     }
 
     if (!form.suspeita_dengue && !form.suspeita_zika && !form.suspeita_chikungunya) {
-      setErro('Selecione pelo menos uma suspeita (Dengue, Zika ou Chikungunya).');
+      showToast('❌ Selecione pelo menos uma suspeita (Dengue, Zika ou Chikungunya).', 'error');
       return;
     }
 
     setLoading(true);
 
     try {
+      // ✅ GERAR LINK DO GOOGLE EARTH AUTOMATICAMENTE
+      const linkGoogleEarth = gerarLinkGoogleEarth(form.latitude, form.longitude);
+
       const dadosEnviar: NotificacaoInput = {
         nome_paciente: form.nome_paciente,
         nome_mae: form.nome_mae,
@@ -122,19 +121,24 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
         dt_notificacao: form.dt_notificacao,
         dt_recebimento: form.dt_recebimento || null,
         endereco: form.endereco,
+        latitude: form.latitude ? parseFloat(form.latitude) : undefined,
+        longitude: form.longitude ? parseFloat(form.longitude) : undefined,
+        link_google_earth: linkGoogleEarth,  // ← GERADO AUTOMATICAMENTE
+        resultado: form.resultado,
+        dt_resultado: form.dt_resultado || '',
         suspeita_dengue: form.suspeita_dengue,
         suspeita_zika: form.suspeita_zika,
         suspeita_chikungunya: form.suspeita_chikungunya,
         observacoes: form.observacoes,
-        resultado: 'AGUARDANDO',
       };
 
       await notificacoesApi.criar(dadosEnviar);
       showToast('✅ Notificação criada com sucesso!', 'success');
       navigate('/notificacoes');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao criar notificação:', error);
-      showToast('❌ Erro ao salvar notificação. Tente novamente.', 'error');
+      const mensagem = error.response?.data?.error || 'Erro ao salvar notificação. Tente novamente.';
+      showToast(`❌ ${mensagem}`, 'error');
       setErro('Erro ao salvar notificação. Tente novamente.');
     } finally {
       setLoading(false);
@@ -180,7 +184,6 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
                 placeholder="Nome completo"
-                required
               />
             </div>
 
@@ -195,7 +198,6 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
                 placeholder="Nome da mãe"
-                required
               />
             </div>
 
@@ -209,7 +211,6 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
                 disabled={loadingLocalidades}
-                required
               >
                 <option value="">Selecione...</option>
                 {localidades.map((loc) => (
@@ -244,7 +245,6 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
                 value={form.dt_primeiros_sintomas}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                required
               />
             </div>
 
@@ -258,7 +258,6 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
                 value={form.dt_notificacao}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                required
               />
             </div>
 
@@ -274,8 +273,71 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
               />
             </div>
+
+            {/* LATITUDE */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Latitude
+              </label>
+              <input
+                type="text"
+                name="latitude"
+                value={form.latitude}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
+                placeholder="-23.550520"
+              />
+            </div>
+
+            {/* LONGITUDE */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Longitude
+              </label>
+              <input
+                type="text"
+                name="longitude"
+                value={form.longitude}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
+                placeholder="-46.633308"
+              />
+            </div>
+
+            {/* RESULTADO */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Resultado
+              </label>
+              <select
+                name="resultado"
+                value={form.resultado}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
+              >
+                <option value="AGUARDANDO">Aguardando</option>
+                <option value="POSITIVO">Positivo</option>
+                <option value="NEGATIVO">Negativo</option>
+                <option value="INCONCLUSIVO">Inconclusivo</option>
+              </select>
+            </div>
+
+            {/* DATA DO RESULTADO */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Data do Resultado
+              </label>
+              <input
+                type="date"
+                name="dt_resultado"
+                value={form.dt_resultado}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
+              />
+            </div>
           </div>
 
+          {/* Suspeitas */}
           <div className="mt-6">
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Suspeitas (selecione pelo menos uma) *
@@ -314,6 +376,7 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
             </div>
           </div>
 
+          {/* Observações */}
           <div className="mt-4">
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Observações
@@ -328,6 +391,7 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
             />
           </div>
 
+          {/* Botões */}
           <div className="flex justify-end gap-3 mt-6">
             <button
               type="button"

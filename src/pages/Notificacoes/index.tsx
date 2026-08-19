@@ -12,7 +12,11 @@ import { ModalConfirmacao } from '../../components/ModalConfirmacao';
 import { notificacoesApi } from '../../api/notificacoes';
 import type { Notificacao, NotificacaoFiltros } from '../../api/notificacoes';
 
-const Notificacoes = () => {
+interface NotificacoesProps {
+  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
+}
+
+const Notificacoes = ({ showToast }: NotificacoesProps) => {
   const navigate = useNavigate();
   const [dados, setDados] = useState<Notificacao[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +25,6 @@ const Notificacoes = () => {
   const [totalRegistros, setTotalRegistros] = useState(0);
   const [filtrosAplicados, setFiltrosAplicados] = useState<NotificacaoFiltros>({});
 
-  // ✅ ESTADOS DO MODAL
   const [modalAberto, setModalAberto] = useState(false);
   const [deletando, setDeletando] = useState(false);
   const [idParaDeletar, setIdParaDeletar] = useState<number | null>(null);
@@ -63,33 +66,31 @@ const Notificacoes = () => {
     carregarNotificacoes(filtrosAplicados, novaPagina);
   };
 
-  // ✅ FUNÇÃO PARA ABRIR MODAL DE CONFIRMAÇÃO
   const handleDeleteClick = (id: number) => {
     setIdParaDeletar(id);
     setModalAberto(true);
   };
 
-  // ✅ FUNÇÃO PARA CONFIRMAR EXCLUSÃO
   const handleConfirmDelete = async () => {
     if (!idParaDeletar) return;
 
     setDeletando(true);
     try {
       await notificacoesApi.deletar(idParaDeletar);
-      // Fechar modal
       setModalAberto(false);
       setDeletando(false);
       setIdParaDeletar(null);
-      // Recarregar a lista (mantendo a página atual)
       carregarNotificacoes(filtrosAplicados, pagina);
-    } catch (error) {
+      showToast('✅ Notificação excluída com sucesso!', 'success');
+    } catch (error: any) {
       console.error('Erro ao deletar notificação:', error);
+      const mensagem = error.response?.data?.error || 'Erro ao excluir notificação.';
+      showToast(`❌ ${mensagem}`, 'error');
       setDeletando(false);
       setModalAberto(false);
     }
   };
 
-  // ✅ FUNÇÃO PARA CANCELAR EXCLUSÃO
   const handleCancelDelete = () => {
     setModalAberto(false);
     setIdParaDeletar(null);
@@ -132,7 +133,6 @@ const Notificacoes = () => {
         </div>
       </div>
 
-      {/* ✅ MODAL DE CONFIRMAÇÃO */}
       <ModalConfirmacao
         isOpen={modalAberto}
         titulo="Confirmar exclusão"

@@ -13,6 +13,9 @@ export interface Notificacao {
   endereco_completo?: string | null;
   localidade_id: number;
   localidade_nome?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  link_google_earth?: string | null;
   dt_notificacao: string;
   dt_recebimento?: string | null;
   status: 'ATIVO' | 'INATIVO';
@@ -60,12 +63,16 @@ export interface NotificacaoInput {
   nome_mae: string;
   endereco?: string;
   localidade_id: number;
+  latitude?: number;
+  longitude?: number;
+  link_google_earth?: string;
   dt_notificacao: string;
   dt_recebimento?: string | null;
   suspeita_dengue: boolean;
   suspeita_zika: boolean;
   suspeita_chikungunya: boolean;
   resultado?: Resultado;
+  dt_resultado?: string;
   observacoes?: string;
 }
 
@@ -98,6 +105,7 @@ export const notificacoesApi = {
     return response.data;
   },
 
+  // ✅ ADICIONAR MÉTODO DELETAR
   async deletar(id: number): Promise<void> {
     await api.delete(`/notificacoes/${id}`);
   },
