@@ -30,7 +30,6 @@ const Relatorios = () => {
                 const data = await localidadesApi.listar();
                 setLocalidades(data);
             } catch (error) {
-                console.error('Erro ao carregar localidades:', error);
             }
         };
         carregarLocalidades();
@@ -65,7 +64,6 @@ const Relatorios = () => {
             setDados(dadosOrdenados);
             setTotal(response.paginacao.total);
         } catch (error) {
-            console.error('Erro ao buscar dados:', error);
         } finally {
             setLoading(false);
         }
@@ -95,7 +93,6 @@ const Relatorios = () => {
         try {
             await exportacaoService.exportarExcel(dados);
         } catch (error) {
-            console.error('Erro ao exportar Excel:', error);
         }
     };
 
@@ -103,7 +100,6 @@ const Relatorios = () => {
         try {
             exportacaoService.exportarPDF(dados);
         } catch (error) {
-            console.error('Erro ao exportar PDF:', error);
         }
     };
 
@@ -111,7 +107,6 @@ const Relatorios = () => {
         try {
             exportacaoService.exportarCSV(dados);
         } catch (error) {
-            console.error('Erro ao exportar CSV:', error);
         }
     };
 

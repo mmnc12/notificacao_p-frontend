@@ -42,7 +42,6 @@ const Notificacoes = ({ showToast }: NotificacoesProps) => {
       setTotalRegistros(response.paginacao.total);
       setPagina(response.paginacao.pagina);
     } catch (error) {
-      console.error('Erro ao carregar notificações:', error);
     } finally {
       setLoading(false);
     }
@@ -83,7 +82,6 @@ const Notificacoes = ({ showToast }: NotificacoesProps) => {
       carregarNotificacoes(filtrosAplicados, pagina);
       showToast('✅ Notificação excluída com sucesso!', 'success');
     } catch (error: any) {
-      console.error('Erro ao deletar notificação:', error);
       const mensagem = error.response?.data?.error || 'Erro ao excluir notificação.';
       showToast(`❌ ${mensagem}`, 'error');
       setDeletando(false);

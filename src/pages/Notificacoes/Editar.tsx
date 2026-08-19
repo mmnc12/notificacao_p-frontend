@@ -50,7 +50,6 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
         const data = await localidadesApi.listar();
         setLocalidades(data);
       } catch (error) {
-        console.error('Erro ao carregar localidades:', error);
       } finally {
         setLoadingLocalidades(false);
       }
@@ -90,7 +89,6 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
           observacoes: data.observacoes || '',
         });
       } catch (error) {
-        console.error('Erro ao carregar notificação:', error);
         setErro('Notificação não encontrada.');
       } finally {
         setLoading(false);
@@ -243,7 +241,6 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
       showToast('✅ Notificação atualizada com sucesso!', 'success');
       navigate('/notificacoes');
     } catch (error: any) {
-      console.error('Erro ao atualizar notificação:', error);
       const mensagem = error.response?.data?.error || 'Erro ao salvar notificação. Tente novamente.';
       showToast(`❌ ${mensagem}`, 'error');
       setErro('Erro ao salvar notificação. Tente novamente.');

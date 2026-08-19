@@ -58,7 +58,6 @@ export const converterGrausParaDecimal = (valor: string): number | null => {
   const match = v.match(regex);
   
   if (!match) {
-    console.log('📝 Regex não encontrou match para:', v);
     return null;
   }
   
@@ -67,16 +66,13 @@ export const converterGrausParaDecimal = (valor: string): number | null => {
   const segundos = parseFloat(match[3]);
   const direcao = match[4].toUpperCase();
   
-  console.log('📝 Converter:', { graus, minutos, segundos, direcao });
   
   let decimal = graus + (minutos / 60) + (segundos / 3600);
   
   if (direcao === 'S' || direcao === 'W') {
     decimal = -decimal;
   }
-  
-  console.log('📝 Resultado decimal:', decimal);
-  
+    
   return decimal;
 };
 

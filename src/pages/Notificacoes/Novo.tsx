@@ -48,7 +48,6 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
         const data = await localidadesApi.listar();
         setLocalidades(data);
       } catch (error) {
-        console.error('Erro ao carregar localidades:', error);
       } finally {
         setLoadingLocalidades(false);
       }
@@ -76,11 +75,9 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
     // Validar e converter Latitude
     if (form.latitude && form.latitude.trim() !== '') {
       const valor = form.latitude.trim();
-      console.log('📝 Latitude original:', valor);
 
       // ✅ Verificar se é decimal (NÃO pode ter °, ' ou ")
       if (isCoordenadaDecimal(valor)) {
-        console.log('📝 Latitude é decimal');
         if (!isCoordenadaValida(valor, 'latitude')) {
           showToast('❌ Latitude deve estar entre -90 e 90 graus.', 'error');
           return false;
@@ -88,11 +85,9 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
       } else {
         // ✅ Tentar converter de graus para decimal
         const convertido = converterGrausParaDecimal(valor);
-        console.log('📝 Latitude convertida:', convertido);
         if (convertido !== null) {
           form.latitude = convertido.toString();
           latitudeConvertida = true;
-          console.log('📝 Latitude após conversão:', form.latitude);
         } else {
           showToast('❌ Formato de latitude inválido. Use decimal (ex: -23.550520) ou graus (ex: 10°48\'4.93"S).', 'error');
           return false;
@@ -103,21 +98,17 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
     // Validar e converter Longitude
     if (form.longitude && form.longitude.trim() !== '') {
       const valor = form.longitude.trim();
-      console.log('📝 Longitude original:', valor);
 
       if (isCoordenadaDecimal(valor)) {
-        console.log('📝 Longitude é decimal');
         if (!isCoordenadaValida(valor, 'longitude')) {
           showToast('❌ Longitude deve estar entre -180 e 180 graus.', 'error');
           return false;
         }
       } else {
         const convertido = converterGrausParaDecimal(valor);
-        console.log('📝 Longitude convertida:', convertido);
         if (convertido !== null) {
           form.longitude = convertido.toString();
           longitudeConvertida = true;
-          console.log('📝 Longitude após conversão:', form.longitude);
         } else {
           showToast('❌ Formato de longitude inválido. Use decimal (ex: -46.633308) ou graus (ex: 46°38\'0.91"W).', 'error');
           return false;
@@ -214,7 +205,6 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
       showToast('✅ Notificação criada com sucesso!', 'success');
       navigate('/notificacoes');
     } catch (error: any) {
-      console.error('Erro ao criar notificação:', error);
       const mensagem = error.response?.data?.error || 'Erro ao salvar notificação. Tente novamente.';
       showToast(`❌ ${mensagem}`, 'error');
       setErro('Erro ao salvar notificação. Tente novamente.');

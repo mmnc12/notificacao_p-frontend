@@ -339,9 +339,7 @@ export const exportacaoService = {
       };
 
       html2pdf().set(opt).from(conteudo).save();
-      console.log('✅ PDF gerado com sucesso!');
     } catch (error) {
-      console.error('❌ Erro ao exportar PDF:', error);
       alert('Erro ao gerar PDF. Verifique o console para mais detalhes.');
     }
   },

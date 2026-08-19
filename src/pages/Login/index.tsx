@@ -15,28 +15,24 @@ const Login = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
   const [toastVisible, setToastVisible] = useState(false);
-  
+
   // ✅ CORRIGIDO: Usar ReturnType<typeof setTimeout>
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const mostrarToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
-    console.log('📝 mostrarToast - Mensagem:', message);
-    console.log('📝 mostrarToast - Type:', type);
-    
+
     // ✅ LIMPAR TIMER ANTERIOR
     if (toastTimerRef.current) {
       clearTimeout(toastTimerRef.current);
       toastTimerRef.current = null;
     }
-    
+
     setToastMessage(message);
     setToastType(type);
     setToastVisible(true);
-    console.log('📝 mostrarToast - Toast visível!');
-    
+
     // ✅ FECHAR APÓS 5 SEGUNDOS
     toastTimerRef.current = setTimeout(() => {
-      console.log('📝 mostrarToast - Fechando Toast após 5 segundos');
       setToastVisible(false);
       toastTimerRef.current = null;
     }, 5000);
@@ -45,29 +41,21 @@ const Login = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    console.log('📝 handleSubmit - Chamado!');
-    console.log('📝 Email:', email);
-    console.log('📝 Senha:', senha ? '***' : 'vazia');
 
     if (!email || !senha) {
       mostrarToast('❌ Preencha todos os campos.', 'error');
       return;
     }
-
     realizarLogin();
   };
 
   const realizarLogin = async () => {
-    console.log('📝 realizarLogin - Iniciando...');
-    
+
     try {
       await login(email, senha);
-      console.log('📝 realizarLogin - Sucesso!');
       navigate('/dashboard');
     } catch (err: unknown) {
-      console.log('📝 realizarLogin - Erro:', err);
-      
+
       let errorMessage = '❌ Erro ao fazer login. Tente novamente.';
 
       if (typeof err === 'object' && err !== null && 'response' in err) {
@@ -79,11 +67,9 @@ const Login = () => {
         }
       }
 
-      console.log('📝 realizarLogin - Mensagem de erro:', errorMessage);
-      
       // ✅ MOSTRAR TOAST APENAS UMA VEZ
       mostrarToast(errorMessage, 'error');
-      
+
       // ✅ LIMPAR OS CAMPOS EM CASO DE ERRO
       setEmail('');
       setSenha('');
@@ -97,14 +83,12 @@ const Login = () => {
       {toastVisible && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
           <div
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg text-white ${
-              toastType === 'error' ? 'bg-red-500' : 'bg-green-500'
-            } mx-4`}
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg text-white ${toastType === 'error' ? 'bg-red-500' : 'bg-green-500'
+              } mx-4`}
           >
             <span className="text-sm font-medium flex-1">{toastMessage}</span>
             <button
               onClick={() => {
-                console.log('📝 Botão ✕ clicado!');
                 if (toastTimerRef.current) {
                   clearTimeout(toastTimerRef.current);
                   toastTimerRef.current = null;
