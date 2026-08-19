@@ -2,7 +2,7 @@
 // src/pages/Login/index.tsx
 // ============================================
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks';
 
@@ -15,27 +15,59 @@ const Login = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
   const [toastVisible, setToastVisible] = useState(false);
+  
+  // ✅ CORRIGIDO: Usar ReturnType<typeof setTimeout>
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const mostrarToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    console.log('📝 mostrarToast - Mensagem:', message);
+    console.log('📝 mostrarToast - Type:', type);
+    
+    // ✅ LIMPAR TIMER ANTERIOR
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = null;
+    }
+    
     setToastMessage(message);
     setToastType(type);
     setToastVisible(true);
+    console.log('📝 mostrarToast - Toast visível!');
     
-    setTimeout(() => {
+    // ✅ FECHAR APÓS 5 SEGUNDOS
+    toastTimerRef.current = setTimeout(() => {
+      console.log('📝 mostrarToast - Fechando Toast após 5 segundos');
       setToastVisible(false);
+      toastTimerRef.current = null;
     }, 5000);
   };
 
-  const handleLogin = async () => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('📝 handleSubmit - Chamado!');
+    console.log('📝 Email:', email);
+    console.log('📝 Senha:', senha ? '***' : 'vazia');
+
     if (!email || !senha) {
       mostrarToast('❌ Preencha todos os campos.', 'error');
       return;
     }
 
+    realizarLogin();
+  };
+
+  const realizarLogin = async () => {
+    console.log('📝 realizarLogin - Iniciando...');
+    
     try {
       await login(email, senha);
+      console.log('📝 realizarLogin - Sucesso!');
       navigate('/dashboard');
     } catch (err: unknown) {
+      console.log('📝 realizarLogin - Erro:', err);
+      
       let errorMessage = '❌ Erro ao fazer login. Tente novamente.';
 
       if (typeof err === 'object' && err !== null && 'response' in err) {
@@ -47,13 +79,14 @@ const Login = () => {
         }
       }
 
+      console.log('📝 realizarLogin - Mensagem de erro:', errorMessage);
+      
+      // ✅ MOSTRAR TOAST APENAS UMA VEZ
       mostrarToast(errorMessage, 'error');
-
+      
       // ✅ LIMPAR OS CAMPOS EM CASO DE ERRO
       setEmail('');
       setSenha('');
-      
-      // ✅ FOCAR NO CAMPO DE EMAIL
       document.getElementById('email')?.focus();
     }
   };
@@ -70,7 +103,14 @@ const Login = () => {
           >
             <span className="text-sm font-medium flex-1">{toastMessage}</span>
             <button
-              onClick={() => setToastVisible(false)}
+              onClick={() => {
+                console.log('📝 Botão ✕ clicado!');
+                if (toastTimerRef.current) {
+                  clearTimeout(toastTimerRef.current);
+                  toastTimerRef.current = null;
+                }
+                setToastVisible(false);
+              }}
               className="text-white/80 hover:text-white"
             >
               ✕
@@ -111,7 +151,7 @@ const Login = () => {
             Faça login para acessar o sistema
           </p>
 
-          <div>
+          <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label
                 htmlFor="email"
@@ -149,8 +189,7 @@ const Login = () => {
             </div>
 
             <button
-              type="button"
-              onClick={handleLogin}
+              type="submit"
               disabled={isLoading}
               className="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-medium rounded-lg shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-200 disabled:bg-emerald-300 dark:disabled:bg-emerald-800 disabled:cursor-not-allowed"
             >
@@ -182,7 +221,7 @@ const Login = () => {
                 'Entrar'
               )}
             </button>
-          </div>
+          </form>
 
           <div className="mt-6 text-center text-xs text-slate-400 dark:text-slate-500 border-t border-slate-200 dark:border-slate-700 pt-4">
             Sistema de Notificação de Arboviroses v1.0

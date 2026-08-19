@@ -25,15 +25,11 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor para tratar erro 401
+// Interceptor para tratar erros (sem redirecionamento automático)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('usuario');
-      window.location.href = '/login';
-    }
+    // ✅ APENAS REJEITAR O ERRO, NÃO REDIRECIONAR
     return Promise.reject(error);
   }
 );
