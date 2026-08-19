@@ -7,7 +7,7 @@ import { Layout } from '../../components/Layout';
 import { notificacoesApi } from '../../api/notificacoes';
 import { localidadesApi, type Localidade } from '../../api/localidades';
 import type { Notificacao, NotificacaoFiltros } from '../../api/notificacoes';
-import { exportacaoService } from '../../services/exportacaoService';  // ← ADICIONAR
+import { exportacaoService } from '../../services/exportacaoService';
 
 const Relatorios = () => {
     const [dados, setDados] = useState<Notificacao[]>([]);
@@ -52,8 +52,17 @@ const Relatorios = () => {
                 if (filtros.dataFim) params.dataFim = filtros.dataFim;
             }
 
+            params.limit = 9999;
+            params.page = 1;
+
             const response = await notificacoesApi.listar(params);
-            setDados(response.dados);
+
+            // ✅ ORDENAR POR NOME DO PACIENTE (A-Z)
+            const dadosOrdenados = response.dados.sort((a, b) =>
+                a.nome_paciente.localeCompare(b.nome_paciente)
+            );
+
+            setDados(dadosOrdenados);
             setTotal(response.paginacao.total);
         } catch (error) {
             console.error('Erro ao buscar dados:', error);
@@ -82,7 +91,6 @@ const Relatorios = () => {
         buscarDados({});
     };
 
-    // ✅ EXPORTAR EXCEL
     const exportarExcel = async () => {
         try {
             await exportacaoService.exportarExcel(dados);
@@ -91,7 +99,6 @@ const Relatorios = () => {
         }
     };
 
-    // Exportar PDF
     const exportarPDF = () => {
         try {
             exportacaoService.exportarPDF(dados);
@@ -100,7 +107,6 @@ const Relatorios = () => {
         }
     };
 
-    // Exportar CSV
     const exportarCSV = () => {
         try {
             exportacaoService.exportarCSV(dados);

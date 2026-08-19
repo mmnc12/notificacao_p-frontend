@@ -126,23 +126,24 @@ export const exportacaoService = {
       conteudo.style.backgroundColor = '#ffffff';
 
       // ============================================
-      // CABEÇALHO COM LOGO E TÍTULOS
+      // CABEÇALHO COM LOGO E TÍTULOS CENTRALIZADOS
       // ============================================
 
       const header = document.createElement('div');
       header.style.display = 'flex';
       header.style.alignItems = 'center';
-      header.style.justifyContent = 'space-between';
+      header.style.justifyContent = 'center';
+      header.style.gap = '20px';
       header.style.borderBottom = '2px solid #1a3a6b';
       header.style.paddingBottom = '15px';
-      header.style.marginBottom = '20px';
-      header.style.paddingTop = '5px';
+      header.style.marginBottom = '15px';
+      header.style.flexWrap = 'wrap';
 
-      // Logo (lado esquerdo)
+      // ✅ LOGO (lado esquerdo)
       const logoImg = document.createElement('img');
       logoImg.src = '/src/assets/logo.png';
-      logoImg.style.width = '70px';
-      logoImg.style.height = '70px';
+      logoImg.style.width = '60px';
+      logoImg.style.height = '60px';
       logoImg.style.objectFit = 'contain';
       logoImg.style.flexShrink = '0';
       header.appendChild(logoImg);
@@ -153,7 +154,6 @@ export const exportacaoService = {
       titulosDiv.style.flexDirection = 'column';
       titulosDiv.style.alignItems = 'center';
       titulosDiv.style.flex = '1';
-      titulosDiv.style.textAlign = 'center';
 
       const titulo1 = document.createElement('div');
       titulo1.style.fontSize = '16px';
@@ -179,30 +179,30 @@ export const exportacaoService = {
 
       header.appendChild(titulosDiv);
 
-      // Espaço vazio para balancear (lado direito)
+      // Espaço vazio para balancear
       const spacer = document.createElement('div');
-      spacer.style.width = '70px';
+      spacer.style.width = '60px';
       spacer.style.flexShrink = '0';
       header.appendChild(spacer);
 
       conteudo.appendChild(header);
 
       // ============================================
-      // DATA E TÍTULO DO RELATÓRIO
+      // NÚMERO DO OFÍCIO E TÍTULO
       // ============================================
 
-      const dataDiv = document.createElement('div');
-      dataDiv.style.textAlign = 'center';
-      dataDiv.style.fontSize = '11px';
-      dataDiv.style.color = '#666';
-      dataDiv.style.marginBottom = '10px';
-      dataDiv.textContent = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
-      conteudo.appendChild(dataDiv);
+      const oficio = document.createElement('div');
+      oficio.style.textAlign = 'center';
+      oficio.style.fontSize = '11px';
+      oficio.style.color = '#555';
+      oficio.style.marginBottom = '5px';
+      oficio.textContent = `Geral nº: ${new Date().getFullYear()}/${String(Math.floor(Math.random() * 9000) + 1000)} de ${new Date().toLocaleDateString('pt-BR')}`;
+      conteudo.appendChild(oficio);
 
       const tituloRelatorio = document.createElement('h2');
       tituloRelatorio.style.textAlign = 'center';
       tituloRelatorio.style.color = '#1a3a6b';
-      tituloRelatorio.style.fontSize = '18px';
+      tituloRelatorio.style.fontSize = '16px';
       tituloRelatorio.style.marginBottom = '5px';
       tituloRelatorio.textContent = 'Relatório de Notificações de Arboviroses';
       conteudo.appendChild(tituloRelatorio);
@@ -211,7 +211,7 @@ export const exportacaoService = {
       totalInfo.style.textAlign = 'center';
       totalInfo.style.color = '#666';
       totalInfo.style.fontSize = '12px';
-      totalInfo.style.marginBottom = '20px';
+      totalInfo.style.marginBottom = '15px';
       totalInfo.textContent = `Total de registros: ${dados.length}`;
       conteudo.appendChild(totalInfo);
 
@@ -222,24 +222,23 @@ export const exportacaoService = {
       const table = document.createElement('table');
       table.style.width = '100%';
       table.style.borderCollapse = 'collapse';
-      table.style.fontSize = '11px';
+      table.style.fontSize = '9px';
       table.style.marginTop = '10px';
-      table.style.textAlign = 'center';
 
       // Cabeçalho da tabela
       const thead = document.createElement('thead');
       const headerRow = document.createElement('tr');
 
-      const headers = ['ID', 'Paciente', 'Mãe', 'Localidade', '1ºs Sintomas', 'Notificação', 'Status', 'Resultado'];
+      const headers = ['Ano', 'Paciente', 'Mãe', 'Localidade', '1ºs Sintomas', 'Notificação', 'Status', 'Resultado'];
 
       headers.forEach((text) => {
         const th = document.createElement('th');
-        th.style.padding = '8px 6px';
+        th.style.padding = '5px 4px';
         th.style.backgroundColor = '#1a3a6b';
         th.style.color = 'white';
         th.style.fontWeight = 'bold';
         th.style.border = '1px solid #1a3a6b';
-        th.style.fontSize = '10px';
+        th.style.fontSize = '8px';
         th.style.textAlign = 'center';
         th.textContent = text;
         headerRow.appendChild(th);
@@ -253,16 +252,27 @@ export const exportacaoService = {
         const tr = document.createElement('tr');
         tr.style.backgroundColor = index % 2 === 0 ? '#f9f9f9' : '#ffffff';
 
+        const formatarDataPDF = (data: string | null | undefined): string => {
+          if (!data) return '-';
+          const d = new Date(data);
+          if (isNaN(d.getTime())) return '-';
+          return d.toLocaleDateString('pt-BR');
+        };
+
+        const getStatusColor = (status: string): string => {
+          return status === 'ATIVO' ? '#16a34a' : '#ca8a04';
+        };
+
         const cells = [
-          { text: (index + 1).toString() },
+          { text: new Date(item.dt_notificacao).getFullYear().toString() },
           { text: item.nome_paciente || '-' },
           { text: item.nome_mae || '-' },
           { text: item.localidade_nome || '-' },
-          { text: formatarData(item.dt_primeiros_sintomas) },
-          { text: formatarData(item.dt_notificacao) },
+          { text: formatarDataPDF(item.dt_primeiros_sintomas) },
+          { text: formatarDataPDF(item.dt_notificacao) },
           {
             text: item.status || '-',
-            color: item.status === 'ATIVO' ? '#16a34a' : '#ca8a04',
+            color: getStatusColor(item.status),
             bold: true,
           },
           { text: item.resultado || 'Aguardando' },
@@ -270,9 +280,10 @@ export const exportacaoService = {
 
         cells.forEach((cell) => {
           const td = document.createElement('td');
-          td.style.padding = '6px 6px';
+          td.style.padding = '4px 4px';
           td.style.border = '1px solid #ddd';
           td.style.textAlign = 'center';
+          td.style.fontSize = '8px';
           if (cell.color) td.style.color = cell.color;
           if (cell.bold) td.style.fontWeight = 'bold';
           td.textContent = cell.text;
@@ -290,17 +301,18 @@ export const exportacaoService = {
       const footer = document.createElement('div');
       footer.style.display = 'flex';
       footer.style.justifyContent = 'space-between';
-      footer.style.marginTop = '20px';
-      footer.style.paddingTop = '15px';
+      footer.style.marginTop = '15px';
+      footer.style.paddingTop = '10px';
       footer.style.borderTop = '1px solid #ddd';
-      footer.style.fontSize = '10px';
-      footer.style.color = '#999';
+      footer.style.fontSize = '9px';
+      footer.style.color = '#666';
 
       const footerLeft = document.createElement('span');
-      footerLeft.textContent = 'Sistema de Notificação de Arboviroses - Setor de Endemias';
+      footerLeft.textContent = 'Valores de notificação do Arboviroses - Setor de Endemias';
 
+      const totalPaginas = Math.ceil(dados.length / 100) || 1;
       const footerRight = document.createElement('span');
-      footerRight.textContent = `Página 1 de ${Math.ceil(dados.length / 100) || 1}`;
+      footerRight.textContent = `Página 1 de ${totalPaginas}`;
 
       footer.appendChild(footerLeft);
       footer.appendChild(footerRight);
