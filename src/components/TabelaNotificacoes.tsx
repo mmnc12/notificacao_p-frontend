@@ -5,6 +5,7 @@
 import { useNavigate } from 'react-router-dom';
 import type { Notificacao } from '../api/notificacoes';
 import { CardNotificacaoMobile } from './CardNotificacaoMobile';
+import { abrirGoogleMaps, temCoordenadas, formatarCoordenadas } from '../utils/mapaUtils';
 
 interface TabelaNotificacoesProps {
   dados: Notificacao[];
@@ -68,6 +69,7 @@ export const TabelaNotificacoes = ({ dados, loading, onDelete }: TabelaNotificac
               <th className="text-left py-3 px-4 font-semibold text-slate-600 dark:text-slate-300">Localidade</th>
               <th className="text-left py-3 px-4 font-semibold text-slate-600 dark:text-slate-300">1ºs Sintomas</th>
               <th className="text-left py-3 px-4 font-semibold text-slate-600 dark:text-slate-300">Status</th>
+              <th className="text-left py-3 px-4 font-semibold text-slate-600 dark:text-slate-300">Localização</th>
               <th className="text-left py-3 px-4 font-semibold text-slate-600 dark:text-slate-300">Ações</th>
             </tr>
           </thead>
@@ -96,6 +98,22 @@ export const TabelaNotificacoes = ({ dados, loading, onDelete }: TabelaNotificac
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(notificacao.status)}`}>
                     {notificacao.status}
                   </span>
+                </td>
+                <td className="py-3 px-4">
+                  {temCoordenadas(notificacao.latitude, notificacao.longitude) ? (
+                    <button
+                      onClick={() => abrirGoogleMaps(
+                        Number(notificacao.latitude),
+                        Number(notificacao.longitude)
+                      )}
+                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium flex items-center gap-1"
+                      title={formatarCoordenadas(notificacao.latitude, notificacao.longitude)}
+                    >
+                      📍 Ver no Mapa
+                    </button>
+                  ) : (
+                    <span className="text-xs text-slate-400 dark:text-slate-500">Sem coordenadas</span>
+                  )}
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex gap-2">

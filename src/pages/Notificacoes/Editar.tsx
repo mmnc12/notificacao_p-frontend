@@ -7,19 +7,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Layout } from '../../components/Layout';
 import { notificacoesApi, type NotificacaoInput, type Resultado } from '../../api/notificacoes';
 import { localidadesApi, type Localidade } from '../../api/localidades';
+import {
+  isCoordenadaDecimal,
+  isCoordenadaValida,
+  converterGrausParaDecimal
+} from '../../utils/coordenadasUtils';
 
 interface EditarNotificacaoProps {
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
-
-// ✅ FUNÇÃO PARA GERAR LINK DO GOOGLE EARTH
-const gerarLinkGoogleEarth = (lat: string, lng: string): string => {
-  if (!lat || !lng) return '';
-  const latNum = parseFloat(lat);
-  const lngNum = parseFloat(lng);
-  if (isNaN(latNum) || isNaN(lngNum)) return '';
-  return `https://earth.google.com/web/@${latNum},${lngNum},0a,222.51700277d,35y,0h,45t,0r`;
-};
 
 const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
   const { id } = useParams<{ id: string }>();
@@ -114,11 +110,67 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
     }
   };
 
+  // ✅ FUNÇÃO PARA VALIDAR E CONVERTER COORDENADAS
+  const validarEConverterCoordenadas = (): boolean => {
+    let latitudeConvertida = false;
+    let longitudeConvertida = false;
+
+    // Validar e converter Latitude
+    if (form.latitude && form.latitude.trim() !== '') {
+      const valor = form.latitude.trim();
+
+      if (isCoordenadaDecimal(valor)) {
+        if (!isCoordenadaValida(valor, 'latitude')) {
+          showToast('❌ Latitude deve estar entre -90 e 90 graus.', 'error');
+          return false;
+        }
+      } else {
+        const convertido = converterGrausParaDecimal(valor);
+        if (convertido !== null) {
+          form.latitude = convertido.toString();
+          latitudeConvertida = true;
+        } else {
+          showToast('❌ Formato de latitude inválido. Use decimal (ex: -23.550520) ou graus (ex: 10°48\'4.93"S).', 'error');
+          return false;
+        }
+      }
+    }
+
+    // Validar e converter Longitude
+    if (form.longitude && form.longitude.trim() !== '') {
+      const valor = form.longitude.trim();
+
+      if (isCoordenadaDecimal(valor)) {
+        if (!isCoordenadaValida(valor, 'longitude')) {
+          showToast('❌ Longitude deve estar entre -180 e 180 graus.', 'error');
+          return false;
+        }
+      } else {
+        const convertido = converterGrausParaDecimal(valor);
+        if (convertido !== null) {
+          form.longitude = convertido.toString();
+          longitudeConvertida = true;
+        } else {
+          showToast('❌ Formato de longitude inválido. Use decimal (ex: -46.633308) ou graus (ex: 46°38\'0.91"W).', 'error');
+          return false;
+        }
+      }
+    }
+
+    if (latitudeConvertida || longitudeConvertida) {
+      let mensagem = '✅ Coordenadas convertidas com sucesso!';
+      if (latitudeConvertida) mensagem += ' Latitude: ' + form.latitude;
+      if (longitudeConvertida) mensagem += ' Longitude: ' + form.longitude;
+      showToast(mensagem, 'info');
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErro(null);
 
-    // Validações
     if (!form.nome_paciente) {
       showToast('❌ Nome do paciente é obrigatório.', 'error');
       return;
@@ -150,10 +202,22 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
       return;
     }
 
+    // ✅ VALIDAR E CONVERTER COORDENADAS
+    if (!validarEConverterCoordenadas()) {
+      return;
+    }
+
     setSalvando(true);
 
     try {
-      // ✅ GERAR LINK DO GOOGLE EARTH AUTOMATICAMENTE
+      const gerarLinkGoogleEarth = (lat: string, lng: string): string => {
+        if (!lat || !lng) return '';
+        const latNum = parseFloat(lat);
+        const lngNum = parseFloat(lng);
+        if (isNaN(latNum) || isNaN(lngNum)) return '';
+        return `https://earth.google.com/web/@${latNum},${lngNum},0a,222.51700277d,35y,0h,45t,0r`;
+      };
+
       const linkGoogleEarth = gerarLinkGoogleEarth(form.latitude, form.longitude);
 
       const dadosEnviar: NotificacaoInput = {
@@ -166,7 +230,7 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
         endereco: form.endereco,
         latitude: form.latitude ? parseFloat(form.latitude) : undefined,
         longitude: form.longitude ? parseFloat(form.longitude) : undefined,
-        link_google_earth: linkGoogleEarth,  // ← GERADO AUTOMATICAMENTE
+        link_google_earth: linkGoogleEarth,
         resultado: form.resultado,
         dt_resultado: form.dt_resultado || '',
         suspeita_dengue: form.suspeita_dengue,
@@ -324,7 +388,6 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
               />
             </div>
 
-            {/* LATITUDE */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Latitude
@@ -335,11 +398,13 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
                 value={form.latitude}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                placeholder="-23.550520"
+                placeholder="Ex: -23.550520 ou 10°48'4.93'S"
               />
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                Use formato decimal ou graus (ex: 10°48'4.93'S)
+              </p>
             </div>
 
-            {/* LONGITUDE */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Longitude
@@ -350,11 +415,13 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
                 value={form.longitude}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                placeholder="-46.633308"
+                placeholder="Ex: -46.633308 ou 46°38'0.91'W"
               />
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                Use formato decimal ou graus (ex: 46°38'0.91'W)
+              </p>
             </div>
 
-            {/* RESULTADO */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Resultado
@@ -372,7 +439,6 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
               </select>
             </div>
 
-            {/* DATA DO RESULTADO */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Data do Resultado
@@ -387,7 +453,6 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
             </div>
           </div>
 
-          {/* Suspeitas */}
           <div className="mt-6">
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Suspeitas (selecione pelo menos uma) *
@@ -426,7 +491,6 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
             </div>
           </div>
 
-          {/* Observações */}
           <div className="mt-4">
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Observações
@@ -440,7 +504,6 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
             />
           </div>
 
-          {/* Botões */}
           <div className="flex justify-end gap-3 mt-6">
             <button
               type="button"

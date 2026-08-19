@@ -7,19 +7,15 @@ import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/Layout';
 import { notificacoesApi, type NotificacaoInput, type Resultado } from '../../api/notificacoes';
 import { localidadesApi, type Localidade } from '../../api/localidades';
+import {
+  isCoordenadaDecimal,
+  isCoordenadaValida,
+  converterGrausParaDecimal
+} from '../../utils/coordenadasUtils';
 
 interface NovoNotificacaoProps {
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
-
-// ✅ FUNÇÃO PARA GERAR LINK DO GOOGLE EARTH
-const gerarLinkGoogleEarth = (lat: string, lng: string): string => {
-  if (!lat || !lng) return '';
-  const latNum = parseFloat(lat);
-  const lngNum = parseFloat(lng);
-  if (isNaN(latNum) || isNaN(lngNum)) return '';
-  return `https://earth.google.com/web/@${latNum},${lngNum},0a,222.51700277d,35y,0h,45t,0r`;
-};
 
 const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
   const navigate = useNavigate();
@@ -71,11 +67,80 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
     }
   };
 
+  // ✅ FUNÇÃO PARA VALIDAR E CONVERTER COORDENADAS
+  // ✅ FUNÇÃO PARA VALIDAR E CONVERTER COORDENADAS
+  const validarEConverterCoordenadas = (): boolean => {
+    let latitudeConvertida = false;
+    let longitudeConvertida = false;
+
+    // Validar e converter Latitude
+    if (form.latitude && form.latitude.trim() !== '') {
+      const valor = form.latitude.trim();
+      console.log('📝 Latitude original:', valor);
+
+      // ✅ Verificar se é decimal (NÃO pode ter °, ' ou ")
+      if (isCoordenadaDecimal(valor)) {
+        console.log('📝 Latitude é decimal');
+        if (!isCoordenadaValida(valor, 'latitude')) {
+          showToast('❌ Latitude deve estar entre -90 e 90 graus.', 'error');
+          return false;
+        }
+      } else {
+        // ✅ Tentar converter de graus para decimal
+        const convertido = converterGrausParaDecimal(valor);
+        console.log('📝 Latitude convertida:', convertido);
+        if (convertido !== null) {
+          form.latitude = convertido.toString();
+          latitudeConvertida = true;
+          console.log('📝 Latitude após conversão:', form.latitude);
+        } else {
+          showToast('❌ Formato de latitude inválido. Use decimal (ex: -23.550520) ou graus (ex: 10°48\'4.93"S).', 'error');
+          return false;
+        }
+      }
+    }
+
+    // Validar e converter Longitude
+    if (form.longitude && form.longitude.trim() !== '') {
+      const valor = form.longitude.trim();
+      console.log('📝 Longitude original:', valor);
+
+      if (isCoordenadaDecimal(valor)) {
+        console.log('📝 Longitude é decimal');
+        if (!isCoordenadaValida(valor, 'longitude')) {
+          showToast('❌ Longitude deve estar entre -180 e 180 graus.', 'error');
+          return false;
+        }
+      } else {
+        const convertido = converterGrausParaDecimal(valor);
+        console.log('📝 Longitude convertida:', convertido);
+        if (convertido !== null) {
+          form.longitude = convertido.toString();
+          longitudeConvertida = true;
+          console.log('📝 Longitude após conversão:', form.longitude);
+        } else {
+          showToast('❌ Formato de longitude inválido. Use decimal (ex: -46.633308) ou graus (ex: 46°38\'0.91"W).', 'error');
+          return false;
+        }
+      }
+    }
+
+    // Mensagem de sucesso se converteu algo
+    if (latitudeConvertida || longitudeConvertida) {
+      let mensagem = '✅ Coordenadas convertidas com sucesso!';
+      if (latitudeConvertida) mensagem += ' Latitude: ' + form.latitude;
+      if (longitudeConvertida) mensagem += ' Longitude: ' + form.longitude;
+      showToast(mensagem, 'info');
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErro(null);
 
-    // Validações
+    // Validações básicas
     if (!form.nome_paciente) {
       showToast('❌ Nome do paciente é obrigatório.', 'error');
       return;
@@ -107,10 +172,23 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
       return;
     }
 
+    // ✅ VALIDAR E CONVERTER COORDENADAS
+    if (!validarEConverterCoordenadas()) {
+      return;
+    }
+
     setLoading(true);
 
     try {
       // ✅ GERAR LINK DO GOOGLE EARTH AUTOMATICAMENTE
+      const gerarLinkGoogleEarth = (lat: string, lng: string): string => {
+        if (!lat || !lng) return '';
+        const latNum = parseFloat(lat);
+        const lngNum = parseFloat(lng);
+        if (isNaN(latNum) || isNaN(lngNum)) return '';
+        return `https://earth.google.com/web/@${latNum},${lngNum},0a,222.51700277d,35y,0h,45t,0r`;
+      };
+
       const linkGoogleEarth = gerarLinkGoogleEarth(form.latitude, form.longitude);
 
       const dadosEnviar: NotificacaoInput = {
@@ -123,7 +201,7 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
         endereco: form.endereco,
         latitude: form.latitude ? parseFloat(form.latitude) : undefined,
         longitude: form.longitude ? parseFloat(form.longitude) : undefined,
-        link_google_earth: linkGoogleEarth,  // ← GERADO AUTOMATICAMENTE
+        link_google_earth: linkGoogleEarth,
         resultado: form.resultado,
         dt_resultado: form.dt_resultado || '',
         suspeita_dengue: form.suspeita_dengue,
@@ -173,6 +251,7 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
 
         <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-slate-200 dark:border-slate-700">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Nome do Paciente */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Nome do Paciente *
@@ -187,6 +266,7 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
               />
             </div>
 
+            {/* Nome da Mãe */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Nome da Mãe *
@@ -201,6 +281,7 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
               />
             </div>
 
+            {/* Localidade */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Localidade *
@@ -221,6 +302,7 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
               </select>
             </div>
 
+            {/* Endereço */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Endereço
@@ -235,6 +317,7 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
               />
             </div>
 
+            {/* Data dos Primeiros Sintomas */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Data dos 1ºs Sintomas *
@@ -248,6 +331,7 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
               />
             </div>
 
+            {/* Data da Notificação */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Data da Notificação *
@@ -261,6 +345,7 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
               />
             </div>
 
+            {/* Data de Recebimento */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Data de Recebimento
@@ -274,7 +359,7 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
               />
             </div>
 
-            {/* LATITUDE */}
+            {/* Latitude */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Latitude
@@ -285,11 +370,14 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
                 value={form.latitude}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                placeholder="-23.550520"
+                placeholder="Ex: -23.550520 ou 10°48'4.93'S"
               />
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                Use formato decimal ou graus (ex: 10°48'4.93'S)
+              </p>
             </div>
 
-            {/* LONGITUDE */}
+            {/* Longitude */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Longitude
@@ -300,11 +388,14 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
                 value={form.longitude}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                placeholder="-46.633308"
+                placeholder="Ex: -46.633308 ou 46°38'0.91'W"
               />
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                Use formato decimal ou graus (ex: 46°38'0.91'W)
+              </p>
             </div>
 
-            {/* RESULTADO */}
+            {/* Resultado */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Resultado
@@ -322,7 +413,7 @@ const NovoNotificacao = ({ showToast }: NovoNotificacaoProps) => {
               </select>
             </div>
 
-            {/* DATA DO RESULTADO */}
+            {/* Data do Resultado */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Data do Resultado

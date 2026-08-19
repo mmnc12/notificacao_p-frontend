@@ -4,6 +4,7 @@
 
 import { useNavigate } from 'react-router-dom';
 import type { Notificacao } from '../api/notificacoes';
+import { abrirGoogleMaps, temCoordenadas } from '../utils/mapaUtils';
 
 interface CardNotificacaoMobileProps {
   notificacao: Notificacao;
@@ -28,7 +29,6 @@ export const CardNotificacaoMobile = ({ notificacao, onDelete }: CardNotificacao
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 mb-3">
-      {/* Cabeçalho do card */}
       <div className="flex justify-between items-start mb-2">
         <div>
           <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -43,7 +43,6 @@ export const CardNotificacaoMobile = ({ notificacao, onDelete }: CardNotificacao
         </span>
       </div>
 
-      {/* Detalhes */}
       <div className="space-y-1 text-sm">
         <div className="flex justify-between">
           <span className="text-slate-500 dark:text-slate-400">Mãe:</span>
@@ -67,7 +66,19 @@ export const CardNotificacaoMobile = ({ notificacao, onDelete }: CardNotificacao
         </div>
       </div>
 
-      {/* Ações */}
+      {/* ✅ BOTÃO MAPA NO MOBILE */}
+      {temCoordenadas(notificacao.latitude, notificacao.longitude) && (
+        <button
+          onClick={() => abrirGoogleMaps(
+            Number(notificacao.latitude),
+            Number(notificacao.longitude)
+          )}
+          className="mt-2 w-full py-1.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+        >
+          📍 Ver no Mapa
+        </button>
+      )}
+
       <div className="flex gap-3 mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
         <button
           onClick={() => navigate(`/notificacoes/${notificacao.id}/editar`)}
