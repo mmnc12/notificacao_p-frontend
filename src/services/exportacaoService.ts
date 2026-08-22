@@ -6,6 +6,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import type { Notificacao } from '../api/notificacoes';
 import html2pdf from 'html2pdf.js';
+import logo from '../assets/logo.png';
 
 // ============================================
 // FUNÇÕES AUXILIARES
@@ -141,7 +142,7 @@ export const exportacaoService = {
 
       // ✅ LOGO (lado esquerdo)
       const logoImg = document.createElement('img');
-      logoImg.src = '/src/assets/logo.png';
+      logoImg.src = logo;
       logoImg.style.width = '60px';
       logoImg.style.height = '60px';
       logoImg.style.objectFit = 'contain';
