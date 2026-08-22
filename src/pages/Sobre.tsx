@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import logo from '../assets/logo.png'; // ← IMPORTE A LOGO
 
 const Sobre: React.FC = () => {
   const { usuario } = useContext(AuthContext);
@@ -9,11 +10,8 @@ const Sobre: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8">
-        {/* ============================================
-            BARRA DE NAVEGAÇÃO SUPERIOR
-            ============================================ */}
+        {/* BARRA DE NAVEGAÇÃO SUPERIOR */}
         <div className="flex justify-between items-center mb-6">
-          {/* Botão Voltar */}
           <button
             onClick={() => navigate(-1)}
             className="text-emerald-600 hover:text-emerald-800 font-medium flex items-center gap-2 transition-colors"
@@ -21,7 +19,6 @@ const Sobre: React.FC = () => {
             <span className="text-xl">←</span> Voltar
           </button>
 
-          {/* Link para Login (só aparece se NÃO estiver logado) */}
           {!usuario && (
             <Link
               to="/login"
@@ -32,19 +29,15 @@ const Sobre: React.FC = () => {
           )}
         </div>
 
-        {/* ============================================
-            TÍTULO
-            ============================================ */}
+        {/* TÍTULO COM LOGO */}
         <h1 className="text-3xl font-bold text-gray-800 mb-6 flex items-center">
-          <span className="mr-3"><img src="../assets/favicon.ico" alt="" /></span>
+          <img src={logo} alt="Logo" className="w-10 h-10 object-contain mr-3" />
           Sobre o Sistema
         </h1>
 
         <div className="border-b border-gray-200 mb-6"></div>
 
-        {/* ============================================
-            CONTEÚDO
-            ============================================ */}
+        {/* CONTEÚDO */}
         <div className="space-y-6">
           {/* Descrição */}
           <section>
@@ -187,9 +180,7 @@ const Sobre: React.FC = () => {
           </section>
         </div>
 
-        {/* ============================================
-            RODAPÉ
-            ============================================ */}
+        {/* RODAPÉ */}
         <div className="mt-8 pt-6 border-t border-gray-200 text-center">
           <p className="text-sm text-gray-500">
             © {new Date().getFullYear()} - Sistema de Notificação de Arboviroses
