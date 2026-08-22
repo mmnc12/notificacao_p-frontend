@@ -1,21 +1,52 @@
 import React, { useContext } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
 const Sobre: React.FC = () => {
   const { usuario } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8">
+        {/* ============================================
+            BARRA DE NAVEGAÇÃO SUPERIOR
+            ============================================ */}
+        <div className="flex justify-between items-center mb-6">
+          {/* Botão Voltar */}
+          <button
+            onClick={() => navigate(-1)}
+            className="text-emerald-600 hover:text-emerald-800 font-medium flex items-center gap-2 transition-colors"
+          >
+            <span className="text-xl">←</span> Voltar
+          </button>
+
+          {/* Link para Login (só aparece se NÃO estiver logado) */}
+          {!usuario && (
+            <Link
+              to="/login"
+              className="text-emerald-600 hover:text-emerald-800 font-medium flex items-center gap-2 transition-colors"
+            >
+              Fazer Login →
+            </Link>
+          )}
+        </div>
+
+        {/* ============================================
+            TÍTULO
+            ============================================ */}
         <h1 className="text-3xl font-bold text-gray-800 mb-6 flex items-center">
-          <span className="mr-3">🦟</span>
+          <span className="mr-3"><img src="../assets/favicon.ico" alt="" /></span>
           Sobre o Sistema
         </h1>
 
         <div className="border-b border-gray-200 mb-6"></div>
 
+        {/* ============================================
+            CONTEÚDO
+            ============================================ */}
         <div className="space-y-6">
-          {/* Informações gerais */}
+          {/* Descrição */}
           <section>
             <h2 className="text-xl font-semibold text-gray-700 mb-3">
               Sistema de Notificação de Arboviroses
@@ -119,7 +150,7 @@ const Sobre: React.FC = () => {
             </h2>
             <div className="bg-gray-100 p-4 rounded-lg">
               <p className="text-gray-600">
-                <span className="font-medium">Projeto:</span> Secretaria Municipal de Saúde
+                <span className="font-medium">Projeto:</span> Manoel Mecias do Nascimento
               </p>
               <p className="text-gray-600">
                 <span className="font-medium">Ano:</span> 2026
@@ -156,12 +187,15 @@ const Sobre: React.FC = () => {
           </section>
         </div>
 
+        {/* ============================================
+            RODAPÉ
+            ============================================ */}
         <div className="mt-8 pt-6 border-t border-gray-200 text-center">
           <p className="text-sm text-gray-500">
             © {new Date().getFullYear()} - Sistema de Notificação de Arboviroses
           </p>
           <p className="text-xs text-gray-400 mt-1">
-            Desenvolvido para a Secretaria Municipal de Saúde
+            Desenvolvido para a Secretaria Municipal de Saúde (Setor de Endemias de Pindobaçu)
           </p>
         </div>
       </div>
