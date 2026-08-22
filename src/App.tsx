@@ -15,6 +15,7 @@ import Relatorios from './pages/Relatorios';
 import Localidades from './pages/Localidades';
 import Perfil from './pages/Perfil';
 import Usuarios from './pages/Usuarios';
+import Sobre from './pages/Sobre';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -111,6 +112,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/sobre" element={<Sobre />} />
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </>
