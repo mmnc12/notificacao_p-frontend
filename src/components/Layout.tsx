@@ -7,6 +7,7 @@ import type { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { BotaoHamburger } from './BotaoHamburger';
+import { useAuth } from '../hooks';
 
 interface LayoutProps {
   children: ReactNode;
@@ -14,6 +15,7 @@ interface LayoutProps {
 
 export const Layout = ({ children }: LayoutProps) => {
   const [sidebarAberta, setSidebarAberta] = useState(false);
+  const { logout } = useAuth();
 
   const toggleSidebar = () => {
     setSidebarAberta(!sidebarAberta);
@@ -45,12 +47,22 @@ export const Layout = ({ children }: LayoutProps) => {
 
       {/* Conteúdo principal */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header com botão hamburger */}
-        <div className="lg:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center">
-          <BotaoHamburger isOpen={sidebarAberta} onClick={toggleSidebar} />
-          <span className="ml-3 text-sm font-semibold text-slate-800 dark:text-white">
-            Arboviroses
-          </span>
+        {/* Header mobile com botão hamburger e botão Sair */}
+        <div className="lg:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center">
+            <BotaoHamburger isOpen={sidebarAberta} onClick={toggleSidebar} />
+            <span className="ml-3 text-sm font-semibold text-slate-800 dark:text-white">
+              Arboviroses
+            </span>
+          </div>
+
+          {/* ✅ BOTÃO SAIR NO MOBILE */}
+          <button
+            onClick={logout}
+            className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+          >
+            Sair
+          </button>
         </div>
 
         {/* Header normal (desktop) */}
