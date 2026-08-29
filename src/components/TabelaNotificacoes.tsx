@@ -32,9 +32,25 @@ export const TabelaNotificacoes = ({ dados, loading, onDelete }: TabelaNotificac
     );
   }
 
+  // ✅ CORRIGIDO: Formatar data manualmente sem usar Date()
   const formatarData = (data: string) => {
-    const d = new Date(data);
-    return d.toLocaleDateString('pt-BR');
+    if (!data) return '-';
+    // Dividir a string YYYY-MM-DD e montar manualmente
+    const partes = data.split('-');
+    if (partes.length === 3) {
+      const ano = partes[0];
+      const mes = partes[1];
+      const dia = partes[2];
+      return `${dia}/${mes}/${ano}`;
+    }
+    return data;
+  };
+
+  // ✅ CORRIGIDO: Pegar o ano sem usar Date()
+  const getAno = (data: string) => {
+    if (!data) return '-';
+    const partes = data.split('-');
+    return partes.length === 3 ? partes[0] : data;
   };
 
   const getStatusBadge = (status: string) => {
@@ -80,7 +96,7 @@ export const TabelaNotificacoes = ({ dados, loading, onDelete }: TabelaNotificac
                 className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
               >
                 <td className="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">
-                  {new Date(notificacao.dt_primeiros_sintomas).getFullYear()}
+                  {getAno(notificacao.dt_primeiros_sintomas)}
                 </td>
                 <td className="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">
                   {notificacao.nome_paciente}
