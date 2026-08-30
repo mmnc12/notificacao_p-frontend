@@ -16,29 +16,6 @@ interface TabelaNotificacoesProps {
 export const TabelaNotificacoes = ({ dados, loading, onDelete }: TabelaNotificacoesProps) => {
   const navigate = useNavigate();
 
-  // ✅ Calcular status baseado nos dias desde os primeiros sintomas
-  const calcularStatus = (dataSintomas: string): 'ATIVO' | 'INATIVO' => {
-    if (!dataSintomas) return 'INATIVO';
-
-    let dataStr = dataSintomas;
-    // Se a data estiver no formato ISO com T (ex: 2026-08-11T00:00:00.000Z)
-    if (dataStr.includes('T')) {
-      dataStr = dataStr.split('T')[0];
-    }
-
-    const partes = dataStr.split('-');
-    if (partes.length !== 3) return 'ATIVO';
-
-    const data = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    const diffTime = Math.abs(hoje.getTime() - data.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    return diffDays > 15 ? 'INATIVO' : 'ATIVO';
-  };
-
   // ✅ CORRIGIDO: Formatar data manualmente sem usar Date()
   const formatarData = (data: string) => {
     if (!data) return '-';
@@ -133,8 +110,8 @@ export const TabelaNotificacoes = ({ dados, loading, onDelete }: TabelaNotificac
           </thead>
           <tbody>
             {dados.map((notificacao) => {
-              // ✅ Calcular o status dinamicamente
-              const statusCalculado = calcularStatus(notificacao.dt_primeiros_sintomas);
+              // ✅ USAR O STATUS QUE VEM DO BANCO (já calculado pelo backend)
+              const status = notificacao.status;
 
               return (
                 <tr
@@ -157,8 +134,8 @@ export const TabelaNotificacoes = ({ dados, loading, onDelete }: TabelaNotificac
                     {formatarData(notificacao.dt_primeiros_sintomas)}
                   </td>
                   <td className="py-3 px-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(statusCalculado)}`}>
-                      {statusCalculado}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(status)}`}>
+                      {status}
                     </span>
                   </td>
                   <td className="py-3 px-4">
