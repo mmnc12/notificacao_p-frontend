@@ -16,6 +16,77 @@ interface TabelaNotificacoesProps {
 export const TabelaNotificacoes = ({ dados, loading, onDelete }: TabelaNotificacoesProps) => {
   const navigate = useNavigate();
 
+  // ✅ Calcular status baseado nos dias desde os primeiros sintomas
+  const calcularStatus = (dataSintomas: string): 'ATIVO' | 'INATIVO' => {
+    if (!dataSintomas) return 'INATIVO';
+
+    let dataStr = dataSintomas;
+    // Se a data estiver no formato ISO com T (ex: 2026-08-11T00:00:00.000Z)
+    if (dataStr.includes('T')) {
+      dataStr = dataStr.split('T')[0];
+    }
+
+    const partes = dataStr.split('-');
+    if (partes.length !== 3) return 'ATIVO';
+
+    const data = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const diffTime = Math.abs(hoje.getTime() - data.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return diffDays > 15 ? 'INATIVO' : 'ATIVO';
+  };
+
+  // ✅ CORRIGIDO: Formatar data manualmente sem usar Date()
+  const formatarData = (data: string) => {
+    if (!data) return '-';
+
+    // Se a data estiver no formato ISO com T (ex: 2026-08-11T00:00:00.000Z)
+    if (data.includes('T')) {
+      const partes = data.split('T')[0].split('-');
+      if (partes.length === 3) {
+        const ano = partes[0];
+        const mes = partes[1];
+        const dia = partes[2];
+        return `${dia}/${mes}/${ano}`;
+      }
+    }
+
+    // Se já estiver no formato YYYY-MM-DD
+    const partes = data.split('-');
+    if (partes.length === 3) {
+      const ano = partes[0];
+      const mes = partes[1];
+      const dia = partes[2];
+      return `${dia}/${mes}/${ano}`;
+    }
+
+    return data;
+  };
+
+  // ✅ CORRIGIDO: Pegar o ano sem usar Date()
+  const getAno = (data: string) => {
+    if (!data) return '-';
+
+    if (data.includes('T')) {
+      const partes = data.split('T')[0].split('-');
+      return partes.length === 3 ? partes[0] : data;
+    }
+
+    const partes = data.split('-');
+    return partes.length === 3 ? partes[0] : data;
+  };
+
+  const getStatusBadge = (status: string) => {
+    const classes = {
+      ATIVO: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+      INATIVO: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+    };
+    return classes[status as keyof typeof classes] || 'bg-gray-100 text-gray-700';
+  };
+
   if (loading) {
     return (
       <div className="text-center py-8 text-slate-500 dark:text-slate-400">
@@ -31,35 +102,6 @@ export const TabelaNotificacoes = ({ dados, loading, onDelete }: TabelaNotificac
       </div>
     );
   }
-
-  // ✅ CORRIGIDO: Formatar data manualmente sem usar Date()
-  const formatarData = (data: string) => {
-    if (!data) return '-';
-    // Dividir a string YYYY-MM-DD e montar manualmente
-    const partes = data.split('-');
-    if (partes.length === 3) {
-      const ano = partes[0];
-      const mes = partes[1];
-      const dia = partes[2];
-      return `${dia}/${mes}/${ano}`;
-    }
-    return data;
-  };
-
-  // ✅ CORRIGIDO: Pegar o ano sem usar Date()
-  const getAno = (data: string) => {
-    if (!data) return '-';
-    const partes = data.split('-');
-    return partes.length === 3 ? partes[0] : data;
-  };
-
-  const getStatusBadge = (status: string) => {
-    const classes = {
-      ATIVO: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-      INATIVO: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-    };
-    return classes[status as keyof typeof classes] || 'bg-gray-100 text-gray-700';
-  };
 
   return (
     <>
@@ -90,65 +132,70 @@ export const TabelaNotificacoes = ({ dados, loading, onDelete }: TabelaNotificac
             </tr>
           </thead>
           <tbody>
-            {dados.map((notificacao) => (
-              <tr
-                key={notificacao.id}
-                className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-              >
-                <td className="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">
-                  {getAno(notificacao.dt_primeiros_sintomas)}
-                </td>
-                <td className="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">
-                  {notificacao.nome_paciente}
-                </td>
-                <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
-                  {notificacao.nome_mae}
-                </td>
-                <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
-                  {notificacao.localidade_nome || '-'}
-                </td>
-                <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
-                  {formatarData(notificacao.dt_primeiros_sintomas)}
-                </td>
-                <td className="py-3 px-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(notificacao.status)}`}>
-                    {notificacao.status}
-                  </span>
-                </td>
-                <td className="py-3 px-4">
-                  {temCoordenadas(notificacao.latitude, notificacao.longitude) ? (
-                    <button
-                      onClick={() => abrirGoogleMaps(
-                        Number(notificacao.latitude),
-                        Number(notificacao.longitude)
-                      )}
-                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium flex items-center gap-1"
-                      title={formatarCoordenadas(notificacao.latitude, notificacao.longitude)}
-                    >
-                      📍 Ver no Mapa
-                    </button>
-                  ) : (
-                    <span className="text-xs text-slate-400 dark:text-slate-500">Sem coordenadas</span>
-                  )}
-                </td>
-                <td className="py-3 px-4">
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => navigate(`/notificacoes/${notificacao.id}/editar`)}
-                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => onDelete?.(notificacao.id)}
-                      className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium"
-                    >
-                      Deletar
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {dados.map((notificacao) => {
+              // ✅ Calcular o status dinamicamente
+              const statusCalculado = calcularStatus(notificacao.dt_primeiros_sintomas);
+
+              return (
+                <tr
+                  key={notificacao.id}
+                  className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                >
+                  <td className="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">
+                    {getAno(notificacao.dt_primeiros_sintomas)}
+                  </td>
+                  <td className="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">
+                    {notificacao.nome_paciente}
+                  </td>
+                  <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
+                    {notificacao.nome_mae}
+                  </td>
+                  <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
+                    {notificacao.localidade_nome || '-'}
+                  </td>
+                  <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
+                    {formatarData(notificacao.dt_primeiros_sintomas)}
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(statusCalculado)}`}>
+                      {statusCalculado}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4">
+                    {temCoordenadas(notificacao.latitude, notificacao.longitude) ? (
+                      <button
+                        onClick={() => abrirGoogleMaps(
+                          Number(notificacao.latitude),
+                          Number(notificacao.longitude)
+                        )}
+                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium flex items-center gap-1"
+                        title={formatarCoordenadas(notificacao.latitude, notificacao.longitude)}
+                      >
+                        📍 Ver no Mapa
+                      </button>
+                    ) : (
+                      <span className="text-xs text-slate-400 dark:text-slate-500">Sem coordenadas</span>
+                    )}
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => navigate(`/notificacoes/${notificacao.id}/editar`)}
+                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => onDelete?.(notificacao.id)}
+                        className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium"
+                      >
+                        Deletar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
