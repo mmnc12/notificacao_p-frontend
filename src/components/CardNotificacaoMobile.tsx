@@ -14,10 +14,22 @@ interface CardNotificacaoMobileProps {
 export const CardNotificacaoMobile = ({ notificacao, onDelete }: CardNotificacaoMobileProps) => {
   const navigate = useNavigate();
 
-  // ✅ CORRIGIDO: Formatar data manualmente sem usar Date()
+  // ✅ CORRIGIDO: Formatar data (suporta ISO com T e YYYY-MM-DD)
   const formatarData = (data: string) => {
     if (!data) return '-';
-    // Dividir a string YYYY-MM-DD e montar manualmente
+    
+    // Se a data estiver no formato ISO com T (ex: 2026-08-18T00:00:00.000Z)
+    if (data.includes('T')) {
+      const partes = data.split('T')[0].split('-');
+      if (partes.length === 3) {
+        const ano = partes[0];
+        const mes = partes[1];
+        const dia = partes[2];
+        return `${dia}/${mes}/${ano}`;
+      }
+    }
+    
+    // Se já estiver no formato YYYY-MM-DD
     const partes = data.split('-');
     if (partes.length === 3) {
       const ano = partes[0];
@@ -25,6 +37,7 @@ export const CardNotificacaoMobile = ({ notificacao, onDelete }: CardNotificacao
       const dia = partes[2];
       return `${dia}/${mes}/${ano}`;
     }
+    
     return data;
   };
 
