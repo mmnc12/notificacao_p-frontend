@@ -36,15 +36,21 @@ export const GraficoBarras = ({ dados, titulo, labelY = 'Quantidade' }: GraficoB
           size: 14,
           weight: 'bold' as const,
         },
-        color: '#0f172a', 
+        color: '#ffffff', // ✅ BRANCO para fundo escuro
       },
       tooltip: {
         backgroundColor: '#ffffff',
-        titleColor: '#0f172a', 
-        bodyColor: '#1e293b', 
+        titleColor: '#0f172a',
+        bodyColor: '#1e293b',
+        borderColor: '#e2e8f0',
         borderWidth: 1,
         cornerRadius: 8,
         padding: 12,
+        callbacks: {
+          label: function (context: any) {
+            return `${context.parsed.y} notificações`;
+          }
+        }
       },
     },
     scales: {
@@ -53,17 +59,21 @@ export const GraficoBarras = ({ dados, titulo, labelY = 'Quantidade' }: GraficoB
         title: {
           display: true,
           text: labelY,
-          color: '#0f172a',
+          color: '#ffffff', // ✅ BRANCO
           font: {
             weight: 'bold' as const,
             size: 12,
           },
         },
         ticks: {
-          color: '#475569', 
+          color: '#ffffff', // ✅ BRANCO
+          font: {
+            weight: 'bold' as const,
+            size: 11,
+          },
         },
         grid: {
-          color: '#e2e8f0', 
+          color: 'rgba(255,255,255,0.15)', // ✅ BRANCO com transparência
         },
       },
       x: {
@@ -71,18 +81,27 @@ export const GraficoBarras = ({ dados, titulo, labelY = 'Quantidade' }: GraficoB
           display: false,
         },
         ticks: {
-          color: '#475569', 
+          color: '#ffffff', // ✅ BRANCO
+          font: {
+            weight: 'bold' as const,
+            size: 11,
+          },
+          maxRotation: 45,
+          minRotation: 30,
         },
       },
     },
   };
+
+  // ✅ CORES DAS BARRAS - mais claras para contrastar com fundo escuro
+  const coresBarras = ['#60a5fa', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#f472b6', '#22d3ee', '#fb923c'];
 
   const data = {
     labels: dados.map((d) => d.label),
     datasets: [
       {
         data: dados.map((d) => d.valor),
-        backgroundColor: dados.map((d) => d.cor || '#1a3a6b'),
+        backgroundColor: dados.map((d, i) => d.cor || coresBarras[i % coresBarras.length]),
         borderRadius: 4,
         borderSkipped: false,
       },

@@ -45,10 +45,10 @@ export const GraficoLinhas = ({ dados, titulo }: GraficoLinhasProps) => {
         labels: {
           font: {
             size: 12,
-            weight: 'bold' as const, 
+            weight: 'bold' as const,
           },
           padding: 20,
-          color: '#0f172a', 
+          color: '#ffffff', // ✅ BRANCO
         },
       },
       title: {
@@ -58,12 +58,12 @@ export const GraficoLinhas = ({ dados, titulo }: GraficoLinhasProps) => {
           size: 14,
           weight: 'bold' as const,
         },
-        color: '#0f172a', 
+        color: '#ffffff', // ✅ BRANCO
       },
       tooltip: {
         backgroundColor: '#ffffff',
-        titleColor: '#0f172a', 
-        bodyColor: '#1e293b', 
+        titleColor: '#0f172a',
+        bodyColor: '#1e293b',
         borderColor: '#e2e8f0',
         borderWidth: 1,
         cornerRadius: 8,
@@ -74,10 +74,14 @@ export const GraficoLinhas = ({ dados, titulo }: GraficoLinhasProps) => {
       y: {
         beginAtZero: true,
         ticks: {
-          color: '#475569', 
+          color: '#ffffff', // ✅ BRANCO
+          font: {
+            weight: 'bold' as const,
+            size: 11,
+          },
         },
         grid: {
-          color: '#e2e8f0', 
+          color: 'rgba(255,255,255,0.15)', // ✅ BRANCO com transparência
         },
       },
       x: {
@@ -85,43 +89,49 @@ export const GraficoLinhas = ({ dados, titulo }: GraficoLinhasProps) => {
           display: false,
         },
         ticks: {
-          color: '#475569', 
+          color: '#ffffff', // ✅ BRANCO
+          font: {
+            weight: 'bold' as const,
+            size: 11,
+          },
+          maxRotation: 45,
+          minRotation: 30,
         },
       },
     },
   };
 
-  // Formatar os labels para exibir mês/ano
   const labels = dados.map((d) => {
     const [ano, mes] = d.label.split('-');
     const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     return `${meses[parseInt(mes) - 1]}/${ano.slice(-2)}`;
   });
 
+  // ✅ CORES MAIS CLARAS para as linhas
   const data = {
     labels,
     datasets: [
       {
         label: 'Total de Notificações',
         data: dados.map((d) => d.total),
-        borderColor: '#1a3a6b', 
-        backgroundColor: 'rgba(26, 58, 107, 0.15)', 
+        borderColor: '#60a5fa', // ✅ Azul claro
+        backgroundColor: 'rgba(96, 165, 250, 0.2)',
         fill: true,
         tension: 0.4,
         pointRadius: 4,
-        pointBackgroundColor: '#1a3a6b',
+        pointBackgroundColor: '#60a5fa',
         pointBorderColor: '#ffffff',
         pointBorderWidth: 1.5,
       },
       {
         label: 'Casos Positivos',
         data: dados.map((d) => d.positivos),
-        borderColor: '#dc2626', 
-        backgroundColor: 'rgba(220, 38, 38, 0.15)', 
+        borderColor: '#f87171', // ✅ Vermelho claro
+        backgroundColor: 'rgba(248, 113, 113, 0.2)',
         fill: true,
         tension: 0.4,
         pointRadius: 4,
-        pointBackgroundColor: '#dc2626',
+        pointBackgroundColor: '#f87171',
         pointBorderColor: '#ffffff',
         pointBorderWidth: 1.5,
       },
