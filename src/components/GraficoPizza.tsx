@@ -27,8 +27,10 @@ export const GraficoPizza = ({ dados, titulo }: GraficoPizzaProps) => {
         labels: {
           font: {
             size: 12,
+            weight: 'bold' as const, 
           },
           padding: 20,
+          color: '#0f172a', 
         },
       },
       title: {
@@ -38,7 +40,16 @@ export const GraficoPizza = ({ dados, titulo }: GraficoPizzaProps) => {
           size: 14,
           weight: 'bold' as const,
         },
-        color: '#1a3a6b',
+        color: '#0f172a', 
+      },
+      tooltip: {
+        backgroundColor: '#ffffff',
+        titleColor: '#0f172a', 
+        bodyColor: '#1e293b', 
+        borderColor: '#e2e8f0',
+        borderWidth: 1,
+        cornerRadius: 8,
+        padding: 12,
       },
     },
     cutout: '60%',
@@ -58,3 +69,5 @@ export const GraficoPizza = ({ dados, titulo }: GraficoPizzaProps) => {
 
   return <Doughnut options={options} data={data} />;
 };
+
+export default GraficoPizza;

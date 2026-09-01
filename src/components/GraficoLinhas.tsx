@@ -45,8 +45,10 @@ export const GraficoLinhas = ({ dados, titulo }: GraficoLinhasProps) => {
         labels: {
           font: {
             size: 12,
+            weight: 'bold' as const, 
           },
           padding: 20,
+          color: '#0f172a', 
         },
       },
       title: {
@@ -56,19 +58,34 @@ export const GraficoLinhas = ({ dados, titulo }: GraficoLinhasProps) => {
           size: 14,
           weight: 'bold' as const,
         },
-        color: '#1a3a6b',
+        color: '#0f172a', 
+      },
+      tooltip: {
+        backgroundColor: '#ffffff',
+        titleColor: '#0f172a', 
+        bodyColor: '#1e293b', 
+        borderColor: '#e2e8f0',
+        borderWidth: 1,
+        cornerRadius: 8,
+        padding: 12,
       },
     },
     scales: {
       y: {
         beginAtZero: true,
+        ticks: {
+          color: '#475569', 
+        },
         grid: {
-          color: 'rgba(0,0,0,0.05)',
+          color: '#e2e8f0', 
         },
       },
       x: {
         grid: {
           display: false,
+        },
+        ticks: {
+          color: '#475569', 
         },
       },
     },
@@ -87,25 +104,31 @@ export const GraficoLinhas = ({ dados, titulo }: GraficoLinhasProps) => {
       {
         label: 'Total de Notificações',
         data: dados.map((d) => d.total),
-        borderColor: '#1a3a6b',
-        backgroundColor: 'rgba(26, 58, 107, 0.1)',
+        borderColor: '#1a3a6b', 
+        backgroundColor: 'rgba(26, 58, 107, 0.15)', 
         fill: true,
         tension: 0.4,
         pointRadius: 4,
         pointBackgroundColor: '#1a3a6b',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 1.5,
       },
       {
         label: 'Casos Positivos',
         data: dados.map((d) => d.positivos),
-        borderColor: '#dc2626',
-        backgroundColor: 'rgba(220, 38, 38, 0.1)',
+        borderColor: '#dc2626', 
+        backgroundColor: 'rgba(220, 38, 38, 0.15)', 
         fill: true,
         tension: 0.4,
         pointRadius: 4,
         pointBackgroundColor: '#dc2626',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 1.5,
       },
     ],
   };
 
   return <Line options={options} data={data} />;
 };
+
+export default GraficoLinhas;

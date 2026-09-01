@@ -36,7 +36,15 @@ export const GraficoBarras = ({ dados, titulo, labelY = 'Quantidade' }: GraficoB
           size: 14,
           weight: 'bold' as const,
         },
-        color: '#1a3a6b',
+        color: '#0f172a', 
+      },
+      tooltip: {
+        backgroundColor: '#ffffff',
+        titleColor: '#0f172a', 
+        bodyColor: '#1e293b', 
+        borderWidth: 1,
+        cornerRadius: 8,
+        padding: 12,
       },
     },
     scales: {
@@ -45,11 +53,25 @@ export const GraficoBarras = ({ dados, titulo, labelY = 'Quantidade' }: GraficoB
         title: {
           display: true,
           text: labelY,
+          color: '#0f172a',
+          font: {
+            weight: 'bold' as const,
+            size: 12,
+          },
+        },
+        ticks: {
+          color: '#475569', 
+        },
+        grid: {
+          color: '#e2e8f0', 
         },
       },
       x: {
         grid: {
           display: false,
+        },
+        ticks: {
+          color: '#475569', 
         },
       },
     },
@@ -69,3 +91,5 @@ export const GraficoBarras = ({ dados, titulo, labelY = 'Quantidade' }: GraficoB
 
   return <Bar options={options} data={data} />;
 };
+
+export default GraficoBarras;
