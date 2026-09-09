@@ -108,8 +108,10 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
     }
   };
 
-  // ✅ FUNÇÃO PARA VALIDAR E CONVERTER COORDENADAS
-  const validarEConverterCoordenadas = (): boolean => {
+  // ✅ FUNÇÃO PARA VALIDAR E CONVERTER COORDENADAS (CORRIGIDA)
+  const validarEConverterCoordenadas = (): { latitude: string | null; longitude: string | null } | null => {
+    let latConvertida: string | null = null;
+    let lngConvertida: string | null = null;
     let latitudeConvertida = false;
     let longitudeConvertida = false;
 
@@ -120,16 +122,17 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
       if (isCoordenadaDecimal(valor)) {
         if (!isCoordenadaValida(valor, 'latitude')) {
           showToast('❌ Latitude deve estar entre -90 e 90 graus.', 'error');
-          return false;
+          return null;
         }
+        latConvertida = valor;
       } else {
         const convertido = converterGrausParaDecimal(valor);
         if (convertido !== null) {
-          form.latitude = convertido.toString();
+          latConvertida = convertido.toString();
           latitudeConvertida = true;
         } else {
           showToast('❌ Formato de latitude inválido. Use decimal (ex: -23.550520) ou graus (ex: 10°48\'4.93"S).', 'error');
-          return false;
+          return null;
         }
       }
     }
@@ -141,28 +144,42 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
       if (isCoordenadaDecimal(valor)) {
         if (!isCoordenadaValida(valor, 'longitude')) {
           showToast('❌ Longitude deve estar entre -180 e 180 graus.', 'error');
-          return false;
+          return null;
         }
+        lngConvertida = valor;
       } else {
         const convertido = converterGrausParaDecimal(valor);
         if (convertido !== null) {
-          form.longitude = convertido.toString();
+          lngConvertida = convertido.toString();
           longitudeConvertida = true;
         } else {
           showToast('❌ Formato de longitude inválido. Use decimal (ex: -46.633308) ou graus (ex: 46°38\'0.91"W).', 'error');
-          return false;
+          return null;
         }
       }
     }
 
+    // Mensagem de sucesso se converteu algo
     if (latitudeConvertida || longitudeConvertida) {
       let mensagem = '✅ Coordenadas convertidas com sucesso!';
-      if (latitudeConvertida) mensagem += ' Latitude: ' + form.latitude;
-      if (longitudeConvertida) mensagem += ' Longitude: ' + form.longitude;
+      if (latitudeConvertida) mensagem += ' Latitude: ' + latConvertida;
+      if (longitudeConvertida) mensagem += ' Longitude: ' + lngConvertida;
       showToast(mensagem, 'info');
     }
 
-    return true;
+    // ✅ Atualizar o estado do formulário com os valores convertidos
+    const updates: any = {};
+    if (latConvertida !== null) updates.latitude = latConvertida;
+    if (lngConvertida !== null) updates.longitude = lngConvertida;
+
+    if (Object.keys(updates).length > 0) {
+      setForm(prev => ({ ...prev, ...updates }));
+    }
+
+    return {
+      latitude: latConvertida,
+      longitude: lngConvertida,
+    };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -201,14 +218,18 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
     }
 
     // ✅ VALIDAR E CONVERTER COORDENADAS
-    if (!validarEConverterCoordenadas()) {
-      return;
+    const coordenadas = validarEConverterCoordenadas();
+    if (coordenadas === null) {
+      return; // Erro já foi mostrado
     }
 
     setSalvando(true);
 
     try {
-      const gerarLinkGoogleEarth = (lat: string, lng: string): string => {
+      const latitudeFinal = coordenadas.latitude || form.latitude;
+      const longitudeFinal = coordenadas.longitude || form.longitude;
+
+      const gerarLinkGoogleEarth = (lat: string | null, lng: string | null): string => {
         if (!lat || !lng) return '';
         const latNum = parseFloat(lat);
         const lngNum = parseFloat(lng);
@@ -216,7 +237,7 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
         return `https://earth.google.com/web/@${latNum},${lngNum},0a,222.51700277d,35y,0h,45t,0r`;
       };
 
-      const linkGoogleEarth = gerarLinkGoogleEarth(form.latitude, form.longitude);
+      const linkGoogleEarth = gerarLinkGoogleEarth(latitudeFinal, longitudeFinal);
 
       const dadosEnviar: NotificacaoInput = {
         nome_paciente: form.nome_paciente,
@@ -226,9 +247,9 @@ const EditarNotificacao = ({ showToast }: EditarNotificacaoProps) => {
         dt_notificacao: form.dt_notificacao,
         dt_recebimento: form.dt_recebimento || null,
         endereco: form.endereco,
-        latitude: form.latitude ? parseFloat(form.latitude) : undefined,
-        longitude: form.longitude ? parseFloat(form.longitude) : undefined,
-        link_google_earth: linkGoogleEarth,
+        latitude: latitudeFinal && !isNaN(parseFloat(latitudeFinal)) ? parseFloat(latitudeFinal) : undefined,
+        longitude: longitudeFinal && !isNaN(parseFloat(longitudeFinal)) ? parseFloat(longitudeFinal) : undefined,
+        link_google_earth: linkGoogleEarth || null,
         resultado: form.resultado,
         dt_resultado: form.dt_resultado || '',
         suspeita_dengue: form.suspeita_dengue,

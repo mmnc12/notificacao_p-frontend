@@ -1,5 +1,5 @@
 // ============================================
-// src/api/notificacoes.ts
+// src/api/notificacao.ts
 // ============================================
 
 import api from './api';
@@ -15,7 +15,7 @@ export interface Notificacao {
   localidade_nome?: string;
   latitude?: number | null;
   longitude?: number | null;
-  link_google_earth?: string | null;
+  link_google_earth?: string | null;  // ✅ ALTERADO
   dt_notificacao: string;
   dt_recebimento?: string | null;
   status: 'ATIVO' | 'INATIVO';
@@ -65,7 +65,7 @@ export interface NotificacaoInput {
   localidade_id: number;
   latitude?: number;
   longitude?: number;
-  link_google_earth?: string;
+  link_google_earth?: string | null;  // ✅ ALTERADO
   dt_notificacao: string;
   dt_recebimento?: string | null;
   suspeita_dengue: boolean;
@@ -105,7 +105,6 @@ export const notificacoesApi = {
     return response.data;
   },
 
-  // ✅ ADICIONAR MÉTODO DELETAR
   async deletar(id: number): Promise<void> {
     await api.delete(`/notificacoes/${id}`);
   },
