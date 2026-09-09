@@ -26,7 +26,8 @@ export const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-900">
+    // ✅ Adicionar bg-slate-900 como fallback para navegadores antigos
+    <div className="flex h-screen bg-slate-900 bg-slate-50 dark:bg-slate-900">
       {/* Sidebar - Desktop sempre visível, Mobile aparece com overlay */}
       <div className={`
         fixed inset-y-0 left-0 z-50
@@ -48,10 +49,12 @@ export const Layout = ({ children }: LayoutProps) => {
       {/* Conteúdo principal */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header mobile com botão hamburger e botão Sair */}
-        <div className="lg:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between">
+        {/* ✅ Adicionar bg-slate-900 como fallback */}
+        <div className="lg:hidden bg-slate-900 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center">
             <BotaoHamburger isOpen={sidebarAberta} onClick={toggleSidebar} />
-            <span className="ml-3 text-sm font-semibold text-slate-800 dark:text-white">
+            {/* ✅ Adicionar text-white como fallback */}
+            <span className="ml-3 text-sm font-semibold text-white text-slate-800 dark:text-white">
               Arboviroses
             </span>
           </div>
@@ -70,7 +73,8 @@ export const Layout = ({ children }: LayoutProps) => {
           <Header />
         </div>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+        {/* ✅ Adicionar bg-slate-900 como fallback */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-900 bg-gradient-to-br from-slate-50 via-white to-slate-100">
           {children}
         </main>
       </div>
