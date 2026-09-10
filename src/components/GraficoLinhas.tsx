@@ -14,17 +14,9 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
+import { useTheme } from '../hooks/useTheme';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 interface GraficoLinhasProps {
   dados: { label: string; total: number; positivos: number }[];
@@ -32,6 +24,10 @@ interface GraficoLinhasProps {
 }
 
 export const GraficoLinhas = ({ dados, titulo }: GraficoLinhasProps) => {
+  const { isDark } = useTheme();
+  const textColor = isDark ? '#ffffff' : '#1e293b'; // ✅ DINÂMICO
+  const gridColor = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)';
+
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -43,22 +39,16 @@ export const GraficoLinhas = ({ dados, titulo }: GraficoLinhasProps) => {
       legend: {
         position: 'bottom' as const,
         labels: {
-          font: {
-            size: 12,
-            weight: 'bold' as const,
-          },
+          font: { size: 12, weight: 'bold' as const },
           padding: 20,
-          color: '#ffffff', // ✅ BRANCO
+          color: textColor, // ✅ DINÂMICO
         },
       },
       title: {
         display: true,
         text: titulo,
-        font: {
-          size: 14,
-          weight: 'bold' as const,
-        },
-        color: '#ffffff', // ✅ BRANCO
+        font: { size: 14, weight: 'bold' as const },
+        color: textColor, // ✅ DINÂMICO
       },
       tooltip: {
         backgroundColor: '#ffffff',
@@ -74,26 +64,18 @@ export const GraficoLinhas = ({ dados, titulo }: GraficoLinhasProps) => {
       y: {
         beginAtZero: true,
         ticks: {
-          color: '#ffffff', // ✅ BRANCO
-          font: {
-            weight: 'bold' as const,
-            size: 11,
-          },
+          color: textColor, // ✅ DINÂMICO
+          font: { weight: 'bold' as const, size: 11 },
         },
         grid: {
-          color: 'rgba(255,255,255,0.15)', // ✅ BRANCO com transparência
+          color: gridColor, // ✅ DINÂMICO
         },
       },
       x: {
-        grid: {
-          display: false,
-        },
+        grid: { display: false },
         ticks: {
-          color: '#ffffff', // ✅ BRANCO
-          font: {
-            weight: 'bold' as const,
-            size: 11,
-          },
+          color: textColor, // ✅ DINÂMICO
+          font: { weight: 'bold' as const, size: 11 },
           maxRotation: 45,
           minRotation: 30,
         },
@@ -107,32 +89,31 @@ export const GraficoLinhas = ({ dados, titulo }: GraficoLinhasProps) => {
     return `${meses[parseInt(mes) - 1]}/${ano.slice(-2)}`;
   });
 
-  // ✅ CORES MAIS CLARAS para as linhas
   const data = {
     labels,
     datasets: [
       {
         label: 'Total de Notificações',
         data: dados.map((d) => d.total),
-        borderColor: '#60a5fa', // ✅ Azul claro
+        borderColor: '#60a5fa',
         backgroundColor: 'rgba(96, 165, 250, 0.2)',
         fill: true,
         tension: 0.4,
         pointRadius: 4,
         pointBackgroundColor: '#60a5fa',
-        pointBorderColor: '#ffffff',
+        pointBorderColor: isDark ? '#ffffff' : '#1e293b',
         pointBorderWidth: 1.5,
       },
       {
         label: 'Casos Positivos',
         data: dados.map((d) => d.positivos),
-        borderColor: '#f87171', // ✅ Vermelho claro
+        borderColor: '#f87171',
         backgroundColor: 'rgba(248, 113, 113, 0.2)',
         fill: true,
         tension: 0.4,
         pointRadius: 4,
         pointBackgroundColor: '#f87171',
-        pointBorderColor: '#ffffff',
+        pointBorderColor: isDark ? '#ffffff' : '#1e293b',
         pointBorderWidth: 1.5,
       },
     ],

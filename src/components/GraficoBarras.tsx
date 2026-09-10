@@ -12,6 +12,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { useTheme } from '../hooks/useTheme';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -22,6 +23,10 @@ interface GraficoBarrasProps {
 }
 
 export const GraficoBarras = ({ dados, titulo, labelY = 'Quantidade' }: GraficoBarrasProps) => {
+  const { isDark } = useTheme();
+  const textColor = isDark ? '#ffffff' : '#1e293b'; // ✅ DINÂMICO
+  const gridColor = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)';
+
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -32,11 +37,8 @@ export const GraficoBarras = ({ dados, titulo, labelY = 'Quantidade' }: GraficoB
       title: {
         display: true,
         text: titulo,
-        font: {
-          size: 14,
-          weight: 'bold' as const,
-        },
-        color: '#ffffff', // ✅ BRANCO para fundo escuro
+        font: { size: 14, weight: 'bold' as const },
+        color: textColor, // ✅ DINÂMICO
       },
       tooltip: {
         backgroundColor: '#ffffff',
@@ -59,33 +61,22 @@ export const GraficoBarras = ({ dados, titulo, labelY = 'Quantidade' }: GraficoB
         title: {
           display: true,
           text: labelY,
-          color: '#ffffff', // ✅ BRANCO
-          font: {
-            weight: 'bold' as const,
-            size: 12,
-          },
+          color: textColor, // ✅ DINÂMICO
+          font: { weight: 'bold' as const, size: 12 },
         },
         ticks: {
-          color: '#ffffff', // ✅ BRANCO
-          font: {
-            weight: 'bold' as const,
-            size: 11,
-          },
+          color: textColor, // ✅ DINÂMICO
+          font: { weight: 'bold' as const, size: 11 },
         },
         grid: {
-          color: 'rgba(255,255,255,0.15)', // ✅ BRANCO com transparência
+          color: gridColor, // ✅ DINÂMICO
         },
       },
       x: {
-        grid: {
-          display: false,
-        },
+        grid: { display: false },
         ticks: {
-          color: '#ffffff', // ✅ BRANCO
-          font: {
-            weight: 'bold' as const,
-            size: 11,
-          },
+          color: textColor, // ✅ DINÂMICO
+          font: { weight: 'bold' as const, size: 11 },
           maxRotation: 45,
           minRotation: 30,
         },
@@ -93,7 +84,6 @@ export const GraficoBarras = ({ dados, titulo, labelY = 'Quantidade' }: GraficoB
     },
   };
 
-  // ✅ CORES DAS BARRAS - mais claras para contrastar com fundo escuro
   const coresBarras = ['#60a5fa', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#f472b6', '#22d3ee', '#fb923c'];
 
   const data = {

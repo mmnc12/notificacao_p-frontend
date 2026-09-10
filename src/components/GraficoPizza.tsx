@@ -9,6 +9,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { useTheme } from '../hooks/useTheme';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -18,6 +19,10 @@ interface GraficoPizzaProps {
 }
 
 export const GraficoPizza = ({ dados, titulo }: GraficoPizzaProps) => {
+  const { isDark } = useTheme();
+  const textColor = isDark ? '#ffffff' : '#1e293b'; // ✅ DINÂMICO
+  const borderColor = isDark ? '#1a3a6b' : '#ffffff';
+
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -25,22 +30,16 @@ export const GraficoPizza = ({ dados, titulo }: GraficoPizzaProps) => {
       legend: {
         position: 'bottom' as const,
         labels: {
-          font: {
-            size: 12,
-            weight: 'bold' as const,
-          },
+          font: { size: 12, weight: 'bold' as const },
           padding: 20,
-          color: '#ffffff', // ✅ BRANCO
+          color: textColor, // ✅ DINÂMICO
         },
       },
       title: {
         display: true,
         text: titulo,
-        font: {
-          size: 14,
-          weight: 'bold' as const,
-        },
-        color: '#ffffff', // ✅ BRANCO
+        font: { size: 14, weight: 'bold' as const },
+        color: textColor, // ✅ DINÂMICO
       },
       tooltip: {
         backgroundColor: '#ffffff',
@@ -60,7 +59,6 @@ export const GraficoPizza = ({ dados, titulo }: GraficoPizzaProps) => {
     cutout: '60%',
   };
 
-  // ✅ CORES MAIS CLARAS para o fundo escuro
   const cores = ['#60a5fa', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#f472b6', '#22d3ee', '#fb923c'];
 
   const data = {
@@ -70,7 +68,7 @@ export const GraficoPizza = ({ dados, titulo }: GraficoPizzaProps) => {
         data: dados.map((d) => d.valor),
         backgroundColor: dados.map((d, i) => d.cor || cores[i % cores.length]),
         borderWidth: 2,
-        borderColor: '#1a3a6b', // ✅ Borda escura para contrastar
+        borderColor: borderColor, // ✅ DINÂMICO
       },
     ],
   };
