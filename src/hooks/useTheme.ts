@@ -3,15 +3,24 @@ import { useEffect, useState } from 'react';
 export const useTheme = () => {
     const [isDark, setIsDark] = useState(() => {
         if (typeof document !== 'undefined') {
-            return document.documentElement.classList.contains('dark');
+            // Garante que a classe 'dark' está no <html>
+            document.documentElement.classList.add('dark');
+            return true;
         }
-        return false;
+        return true;
     });
 
     useEffect(() => {
-        // Observa mudanças no atributo 'class' do <html>
+        // Garante que a classe 'dark' está sempre no <html>
+        document.documentElement.classList.add('dark');
+
+        // Observa mudanças
         const observer = new MutationObserver(() => {
-            setIsDark(document.documentElement.classList.contains('dark'));
+            const temDark = document.documentElement.classList.contains('dark');
+            if (!temDark) {
+                document.documentElement.classList.add('dark');
+            }
+            setIsDark(true);
         });
 
         observer.observe(document.documentElement, {
