@@ -125,6 +125,7 @@ export const exportacaoService = {
       conteudo.style.padding = '30px 40px';
       conteudo.style.fontFamily = 'Arial, sans-serif';
       conteudo.style.backgroundColor = '#ffffff';
+      conteudo.style.color = '#000000';   // ⬅️ força preto no container
 
       // ============================================
       // CABEÇALHO COM LOGO E TÍTULOS CENTRALIZADOS
@@ -174,7 +175,7 @@ export const exportacaoService = {
       const titulo3 = document.createElement('div');
       titulo3.style.fontSize = '13px';
       titulo3.style.fontWeight = 'bold';
-      titulo3.style.color = '#333';
+      titulo3.style.color = '#333333';
       titulo3.textContent = 'SETOR DE ENDEMIAS';
       titulosDiv.appendChild(titulo3);
 
@@ -195,7 +196,7 @@ export const exportacaoService = {
       const oficio = document.createElement('div');
       oficio.style.textAlign = 'center';
       oficio.style.fontSize = '11px';
-      oficio.style.color = '#555';
+      oficio.style.color = '#555555';
       oficio.style.marginBottom = '5px';
       oficio.textContent = `Geral nº: ${new Date().getFullYear()}/${String(Math.floor(Math.random() * 9000) + 1000)} de ${new Date().toLocaleDateString('pt-BR')}`;
       conteudo.appendChild(oficio);
@@ -210,7 +211,7 @@ export const exportacaoService = {
 
       const totalInfo = document.createElement('p');
       totalInfo.style.textAlign = 'center';
-      totalInfo.style.color = '#666';
+      totalInfo.style.color = '#666666';
       totalInfo.style.fontSize = '12px';
       totalInfo.style.marginBottom = '15px';
       totalInfo.textContent = `Total de registros: ${dados.length}`;
@@ -223,8 +224,9 @@ export const exportacaoService = {
       const table = document.createElement('table');
       table.style.width = '100%';
       table.style.borderCollapse = 'collapse';
-      table.style.fontSize = '9px';
+      table.style.fontSize = '10px';
       table.style.marginTop = '10px';
+      table.style.color = '#000000';   // ⬅️ força preto na tabela toda
 
       // Cabeçalho da tabela
       const thead = document.createElement('thead');
@@ -236,10 +238,10 @@ export const exportacaoService = {
         const th = document.createElement('th');
         th.style.padding = '5px 4px';
         th.style.backgroundColor = '#1a3a6b';
-        th.style.color = 'white';
+        th.style.color = '#ffffff';       // ⬅️ branco explícito no cabeçalho
         th.style.fontWeight = 'bold';
         th.style.border = '1px solid #1a3a6b';
-        th.style.fontSize = '8px';
+        th.style.fontSize = '9px';
         th.style.textAlign = 'center';
         th.textContent = text;
         headerRow.appendChild(th);
@@ -251,7 +253,8 @@ export const exportacaoService = {
       const tbody = document.createElement('tbody');
       dados.slice(0, 100).forEach((item, index) => {
         const tr = document.createElement('tr');
-        tr.style.backgroundColor = index % 2 === 0 ? '#f9f9f9' : '#ffffff';
+        tr.style.backgroundColor = index % 2 === 0 ? '#f2f2f2' : '#ffffff';
+        tr.style.color = '#000000';       // ⬅️ força preto na linha
 
         const formatarDataPDF = (data: string | null | undefined): string => {
           if (!data) return '-';
@@ -261,7 +264,7 @@ export const exportacaoService = {
         };
 
         const getStatusColor = (status: string): string => {
-          return status === 'ATIVO' ? '#16a34a' : '#ca8a04';
+          return status === 'ATIVO' ? '#15803d' : '#a16207';
         };
 
         const cells = [
@@ -282,11 +285,12 @@ export const exportacaoService = {
         cells.forEach((cell) => {
           const td = document.createElement('td');
           td.style.padding = '4px 4px';
-          td.style.border = '1px solid #ddd';
+          td.style.border = '1px solid #999999';
           td.style.textAlign = 'center';
-          td.style.fontSize = '8px';
-          if (cell.color) td.style.color = cell.color;
-          if (cell.bold) td.style.fontWeight = 'bold';
+          td.style.fontSize = '10px';
+          td.style.color = cell.color || '#000000';   // ⬅️ preto explícito SEMPRE
+          td.style.fontWeight = cell.bold ? 'bold' : 'normal';
+          td.style.backgroundColor = 'transparent';
           td.textContent = cell.text;
           tr.appendChild(td);
         });
@@ -304,9 +308,9 @@ export const exportacaoService = {
       footer.style.justifyContent = 'space-between';
       footer.style.marginTop = '15px';
       footer.style.paddingTop = '10px';
-      footer.style.borderTop = '1px solid #ddd';
+      footer.style.borderTop = '1px solid #dddddd';
       footer.style.fontSize = '9px';
-      footer.style.color = '#666';
+      footer.style.color = '#555555';
 
       const footerLeft = document.createElement('span');
       footerLeft.textContent = 'Valores de notificação do Arboviroses - Setor de Endemias';
@@ -330,6 +334,7 @@ export const exportacaoService = {
           scale: 2,
           useCORS: true,
           logging: false,
+          backgroundColor: '#ffffff',
         },
         jsPDF: {
           unit: 'mm',
